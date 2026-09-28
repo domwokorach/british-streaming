@@ -7,7 +7,7 @@ export const getOnTheAirSeries = (page = 1) => tmdbFetch<TmdbPage<TmdbMedia>>(`/
 export const getAiringTodaySeries = (page = 1) => tmdbFetch<TmdbPage<TmdbMedia>>(`/tv/airing_today?page=${page}`, 600);
 
 const TV_APPEND = "credits,videos,images,recommendations,similar,watch/providers,content_ratings";
-export const getSeriesDetails = (id: number) => tmdbFetch<TmdbMedia>(`/tv/${id}?append_to_response=${TV_APPEND}`, 1800);
+export const getSeriesDetails = (id: number) => tmdbFetch<TmdbMedia>(`/tv/${id}?append_to_response=${TV_APPEND}&include_image_language=en,null`, 1800);
 
 export const getSeasonDetails = (seriesId: number, seasonNumber: number) =>
   tmdbFetch<TmdbSeasonDetails>(`/tv/${seriesId}/season/${seasonNumber}`, 1800);

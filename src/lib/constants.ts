@@ -8,8 +8,3 @@ export const NAV_ITEMS = [
 ] as const;
 
 export const PROFILE_IMAGE = "https://i.pravatar.cc/80?img=12";
-
-export function artworkUrl(id: string, crop = "w=900&h=506") {
-  if (id.startsWith("http")) return id;
-  return `https://images.unsplash.com/${id}?auto=format&fit=crop&${crop}&q=85`;
-}

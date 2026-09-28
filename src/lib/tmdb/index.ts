@@ -2,13 +2,14 @@ import "server-only";
 
 import { env } from "@/lib/env";
 import { discoverMovies, discoverOnNetflix, discoverTv } from "./discover";
-import { getNowPlayingMovies, getPopularMovies, getTopRatedMovies, getUpcomingMovies } from "./movies";
+import { getMovieDetails, getNowPlayingMovies, getPopularMovies, getTopRatedMovies, getUpcomingMovies } from "./movies";
 import { getRecommendations, getSimilar } from "./recommendations";
 import { toWatchProviderInfo } from "./providers";
-import { getPopularSeries, getTopRatedSeries } from "./tv";
+import { getPopularSeries, getSeriesDetails, getTopRatedSeries } from "./tv";
 import { getTrending } from "./trending";
 import { selectTrailer } from "./videos";
-import type { CastMember, CrewMember, MediaDetails, MediaItem, TmdbMedia } from "./types";
+import { getPosterUrl } from "./client";
+import type { CastMember, CrewMember, MediaDetails, MediaItem, TmdbImage, TmdbMedia } from "./types";
 
 export function toMediaItem(media: TmdbMedia, mediaType: "movie" | "tv"): MediaItem {
   return {
@@ -21,9 +22,17 @@ export function toMediaItem(media: TmdbMedia, mediaType: "movie" | "tv"): MediaI
     backdropPath: media.backdrop_path,
     releaseDate: media.release_date ?? media.first_air_date ?? null,
     voteAverage: media.vote_average,
+    voteCount: media.vote_count ?? 0,
     popularity: media.popularity,
     genreIds: media.genre_ids ?? media.genres?.map((genre) => genre.id) ?? [],
   };
+}
+
+/** Prefers an English wordmark, falling back to a language-neutral one; never guesses a logo exists. */
+function logoUrlFor(logos: TmdbImage[] | undefined): string | null {
+  if (!logos?.length) return null;
+  const best = [...logos].sort((a, b) => b.width - a.width)[0];
+  return getPosterUrl(best.file_path, "w500");
 }
 
 function certificationFor(media: TmdbMedia, mediaType: "movie" | "tv", region: string): string | null {
@@ -52,6 +61,7 @@ export function toMediaDetails(media: TmdbMedia, mediaType: "movie" | "tv"): Med
     directors,
     creators,
     trailerKey: selectTrailer(media.videos?.results ?? []),
+    logoUrl: logoUrlFor(media.images?.logos),
     recommendations: (media.recommendations?.results ?? []).map((item) => toMediaItem(item, mediaType)),
     similar: (media.similar?.results ?? []).map((item) => toMediaItem(item, mediaType)),
     watchProviders: toWatchProviderInfo(watchProvidersRaw, env.tmdbRegion),
@@ -69,7 +79,7 @@ export interface CatalogueRow { title: string; items: MediaItem[]; variant?: "st
 const DOCUMENTARY_GENRE = "99";
 const CRIME_GENRE = "80";
 
-export async function getHomepageCatalogue(): Promise<{ featured: MediaItem | null; rows: CatalogueRow[] }> {
+export async function getHomepageCatalogue(): Promise<{ featured: MediaDetails | null; rows: CatalogueRow[] }> {
   const region = env.tmdbRegion;
   const results = await Promise.allSettled([
     getTrending("movie"),
@@ -106,7 +116,14 @@ export async function getHomepageCatalogue(): Promise<{ featured: MediaItem | nu
     { title: "Crime Films", items: value(11, "movie") },
   ].filter((row) => row.items.length > 0);
 
-  return { featured: trendingMovies.find((item) => item.backdropPath) ?? trendingSeries.find((item) => item.backdropPath) ?? null, rows };
+  const featuredPick = trendingMovies.find((item) => item.backdropPath) ?? trendingSeries.find((item) => item.backdropPath) ?? null;
+  const featured = featuredPick
+    ? await (featuredPick.mediaType === "tv" ? getSeriesDetails(featuredPick.id) : getMovieDetails(featuredPick.id))
+        .then((media) => toMediaDetails(media, featuredPick.mediaType))
+        .catch(() => null)
+    : null;
+
+  return { featured, rows };
 }
 
 /** Recommendation rail for a title-detail page: TMDB's own recommendations, falling back to similar titles. */

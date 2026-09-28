@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
+import { MotionConfig } from "motion/react";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/providers/auth-provider";
@@ -30,7 +31,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`dark ${netflixSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col"><AuthProvider><PlaybackProvider>{children}</PlaybackProvider></AuthProvider><Toaster theme="dark" /></body>
+      <body className="min-h-full flex flex-col"><MotionConfig reducedMotion="user"><AuthProvider><PlaybackProvider>{children}</PlaybackProvider></AuthProvider><Toaster theme="dark" /></MotionConfig></body>
     </html>
   );
 }

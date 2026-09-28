@@ -11,7 +11,7 @@ function getGenreMapOnce() {
   return genreMapPromise;
 }
 
-interface TitleRef { tmdbId: number; mediaType: "movie" | "tv"; percent?: number; }
+interface TitleRef { tmdbId: number; mediaType: "movie" | "tv"; percent?: number; seasonNumber?: number | null; episodeNumber?: number | null; }
 
 /** Resolves {tmdbId, mediaType} references (My List, Continue Watching entries, ...) into real, displayable MediaTitle cards. */
 export function useResolvedTitles(refs: TitleRef[]) {
@@ -37,11 +37,19 @@ export function useResolvedTitles(refs: TitleRef[]) {
       fetch("/api/titles/batch", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ items: refs.map(({ tmdbId, mediaType }) => ({ tmdbId, mediaType })) }) }).then((response) => response.json() as Promise<MediaItem[]>),
     ]).then(([genreMap, items]) => {
       if (cancelled) return;
-      const percentByKey = new Map(refs.map((ref) => [`${ref.mediaType}-${ref.tmdbId}`, ref.percent]));
+      const refByKey = new Map(refs.map((ref) => [`${ref.mediaType}-${ref.tmdbId}`, ref]));
       setTitles(items.map((item) => {
         const title = toPresentationTitleClient(item, genreMap);
-        const percent = percentByKey.get(`${item.mediaType}-${item.id}`);
-        return percent !== undefined ? { ...title, progress: { percent } } : title;
+        const ref = refByKey.get(`${item.mediaType}-${item.id}`);
+        if (ref?.percent === undefined) return title;
+        return {
+          ...title,
+          progress: {
+            percent: ref.percent,
+            seasonNumber: ref.seasonNumber ?? undefined,
+            episodeNumber: ref.episodeNumber ?? undefined,
+          },
+        };
       }));
     }).catch(() => !cancelled && setTitles([])).finally(() => !cancelled && setLoading(false));
     return () => {

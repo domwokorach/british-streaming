@@ -31,6 +31,7 @@ export interface TmdbMedia {
   release_date?: string;
   first_air_date?: string;
   vote_average: number;
+  vote_count?: number;
   popularity?: number;
   genre_ids?: number[];
   genres?: TmdbGenre[];
@@ -44,7 +45,7 @@ export interface TmdbMedia {
   created_by?: Array<{ id: number; name: string; profile_path: string | null }>;
   credits?: TmdbCredits;
   videos?: { results: TmdbVideo[] };
-  images?: { backdrops: TmdbImage[]; posters: TmdbImage[] };
+  images?: { backdrops: TmdbImage[]; posters: TmdbImage[]; logos?: TmdbImage[] };
   recommendations?: TmdbPage<TmdbMedia>;
   similar?: TmdbPage<TmdbMedia>;
   "watch/providers"?: { results: Record<string, TmdbWatchProviderRegion> };
@@ -104,6 +105,7 @@ export type MediaItem = {
   backdropPath: string | null;
   releaseDate: string | null;
   voteAverage: number;
+  voteCount: number;
   popularity?: number;
   genreIds: number[];
 };
@@ -130,6 +132,7 @@ export interface MediaDetails extends MediaItem {
   directors: CrewMember[];
   creators: Array<{ id: number; name: string; profilePath: string | null }>;
   trailerKey: string | null;
+  logoUrl: string | null;
   recommendations: MediaItem[];
   similar: MediaItem[];
   watchProviders: WatchProviderInfo | null;

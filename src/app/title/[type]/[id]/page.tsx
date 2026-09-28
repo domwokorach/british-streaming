@@ -31,13 +31,13 @@ export default async function TitleDetailsPage({ params }: PageProps<"/title/[ty
     <main className="min-h-screen bg-[#141414] pb-16 text-white">
       <Navbar />
       <section className="relative h-[56vh] min-h-[380px] max-h-[620px]">
-        <Image src={featured.backdropId} alt="" fill priority sizes="100vw" className="object-cover object-top" />
+        {featured.title.backdropUrl && <Image src={featured.title.backdropUrl} alt="" fill priority sizes="100vw" className="object-cover object-top" />}
         <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-[#141414]/40 to-transparent" />
       </section>
 
       <div className="relative z-10 -mt-24 flex flex-col gap-6 px-4 sm:-mt-32 sm:flex-row sm:px-10">
         <div className="relative mx-auto hidden h-72 w-48 shrink-0 overflow-hidden rounded-md shadow-2xl sm:block">
-          {title.artworkId && <Image src={title.artworkId} alt={`${title.name} poster`} fill sizes="192px" className="object-cover" />}
+          {title.posterUrl && <Image src={title.posterUrl} alt={`${title.name} poster`} fill sizes="192px" className="object-cover" />}
         </div>
 
         <div className="flex-1">
@@ -45,8 +45,8 @@ export default async function TitleDetailsPage({ params }: PageProps<"/title/[ty
           {details.originalTitle && details.originalTitle !== details.title && <p className="mt-1 text-sm text-zinc-400">Original title: {details.originalTitle}</p>}
 
           <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-medium text-zinc-200">
-            <p className="text-sm font-semibold text-[#46d369]">{title.match}% Match</p>
-            <span>{title.year}</span>
+            {title.match !== null && <p className="text-sm font-semibold text-[#46d369]">{title.match}% Match</p>}
+            {title.year && <span>{title.year}</span>}
             {details.certification && <Badge className="rounded-sm border border-zinc-500 bg-transparent px-1.5 text-zinc-200">{details.certification}</Badge>}
             {details.runtime && <span>{details.runtime} min</span>}
             {type === "tv" && details.numberOfSeasons && <span>{details.numberOfSeasons} Season{details.numberOfSeasons === 1 ? "" : "s"}</span>}

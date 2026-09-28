@@ -60,5 +60,15 @@ export function useWatchProgress() {
   }, [refresh]);
   useUserStateRealtime(user?.id ?? null, refresh);
 
-  return { entries, loading };
+  const removeEntry = useCallback(
+    async (tmdbId: number, mediaType: "movie" | "tv") => {
+      if (!user) return;
+      const supabase = createSupabaseBrowserClient();
+      await supabase.from("watch_progress").delete().eq("user_id", user.id).eq("tmdb_id", tmdbId).eq("media_type", mediaType);
+      setEntries((current) => current.filter((entry) => !(entry.tmdbId === tmdbId && entry.mediaType === mediaType)));
+    },
+    [user],
+  );
+
+  return { entries, loading, removeEntry };
 }
