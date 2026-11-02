@@ -1,0 +1,23 @@
+groups:
+  - name: service-health
+    rules:
+      - alert: InstanceDown
+        expr: up{job="web"} == 0
+        for: 2m
+        labels: { severity: page }
+        annotations: { summary: "web target {{ $labels.instance }} is down", runbook_url: docs/runbooks/incident-response.md }
+      - alert: HighMemory
+        expr: process_resident_memory_bytes{job="web"} > 0.85 * 512 * 1024 * 1024
+        for: 10m
+        labels: { severity: ticket }
+        annotations: { summary: "web memory above 85% of the container limit" }
+      - alert: SlowLargestContentfulPaint
+        expr: histogram_quantile(0.75, sum by (le) (rate(web_vitals_value_bucket{name="LCP"}[1h]))) > 2500
+        for: 30m
+        labels: { severity: ticket }
+        annotations: { summary: "p75 LCP above 2.5 s (Core Web Vitals 'good' threshold)" }
+      - alert: PlaybackFailureSpike
+        expr: sum(rate(player_events_total{event="error"}[10m])) / clamp_min(sum(rate(player_events_total{event="start"}[10m])), 0.001) > 0.05
+        for: 10m
+        labels: { severity: page }
+        annotations: { summary: "More than 5% of playback starts are failing", runbook_url: docs/runbooks/incident-response.md }

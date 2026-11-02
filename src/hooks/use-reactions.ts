@@ -2,36 +2,30 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { useUserStateRealtime } from "@/lib/supabase/realtime";
+import { api, notifyUserStateChanged } from "@/lib/auth/client";
 import { useAuth } from "@/providers/auth-provider";
+import { useUserStateSync } from "./use-user-state-sync";
 
 interface ReactionEntry { tmdbId: number; mediaType: "movie" | "tv"; reaction: "like" | "dislike"; }
 
-/** Real "Like" state backed by the `reactions` Supabase table — synced live across tabs via Realtime. */
+/** "Like" state via /api/me/reactions, synced across tabs. */
 export function useReactions() {
   const { user } = useAuth();
   const [entries, setEntries] = useState<ReactionEntry[]>([]);
 
   const refresh = useCallback(async () => {
-    await Promise.resolve();
     if (!user) {
       setEntries([]);
       return;
     }
-    try {
-      const supabase = createSupabaseBrowserClient();
-      const { data } = await supabase.from("reactions").select("tmdb_id, media_type, reaction").eq("user_id", user.id);
-      setEntries((data ?? []).map((row) => ({ tmdbId: row.tmdb_id as number, mediaType: row.media_type as "movie" | "tv", reaction: row.reaction as "like" | "dislike" })));
-    } catch {
-      setEntries([]);
-    }
+    const res = await api<{ entries: ReactionEntry[] }>("/api/me/reactions");
+    setEntries(res.ok ? res.data.entries : []);
   }, [user]);
 
   useEffect(() => {
     queueMicrotask(refresh);
   }, [refresh]);
-  useUserStateRealtime(user?.id ?? null, refresh);
+  useUserStateSync(Boolean(user), refresh);
 
   const isLiked = useCallback((tmdbId: number, mediaType: "movie" | "tv") => entries.some((entry) => entry.tmdbId === tmdbId && entry.mediaType === mediaType && entry.reaction === "like"), [entries]);
 
@@ -41,13 +35,10 @@ export function useReactions() {
         toast.error("Sign in required", { description: "Sign in to like titles." });
         return;
       }
-      const supabase = createSupabaseBrowserClient();
-      if (isLiked(tmdbId, mediaType)) {
-        await supabase.from("reactions").delete().eq("user_id", user.id).eq("tmdb_id", tmdbId).eq("media_type", mediaType);
-      } else {
-        await supabase.from("reactions").upsert({ user_id: user.id, tmdb_id: tmdbId, media_type: mediaType, reaction: "like", updated_at: new Date().toISOString() });
-      }
-      refresh();
+      const res = await api("/api/me/reactions", { method: "PUT", body: { tmdbId, mediaType, reaction: isLiked(tmdbId, mediaType) ? null : "like" } });
+      if (!res.ok) toast.error("Couldn't save your reaction", { description: res.error.message });
+      await refresh();
+      notifyUserStateChanged();
     },
     [user, isLiked, refresh],
   );

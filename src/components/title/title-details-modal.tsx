@@ -34,13 +34,13 @@ export function TitleDetails({ title, children }: { title: MediaTitle; children:
     <Dialog open={open} onOpenChange={setOpen}>
       {children}
       {isDesktop ? (
-        <DialogContent className="max-h-[88vh] max-w-2xl overflow-y-auto overflow-x-hidden border-white/10 bg-[#181818] p-0 text-white sm:max-w-2xl">
+        <DialogContent className="max-h-[88vh] max-w-2xl overflow-y-auto overflow-x-hidden border-white/10 bg-[#16275a] p-0 text-white sm:max-w-2xl">
           <DialogTitle className="sr-only">{title.name}</DialogTitle>
           <DialogDescription className="sr-only">{accessibleDescription}</DialogDescription>
           <TitleDetailsBody title={title} open={open} />
         </DialogContent>
       ) : (
-        <SheetContent side="bottom" className="max-h-[92vh] overflow-y-auto overflow-x-hidden border-white/10 bg-[#181818] p-0 text-white">
+        <SheetContent side="bottom" className="max-h-[92vh] overflow-y-auto overflow-x-hidden border-white/10 bg-[#16275a] p-0 text-white">
           <SheetTitle className="sr-only">{title.name}</SheetTitle>
           <SheetDescription className="sr-only">{accessibleDescription}</SheetDescription>
           <TitleDetailsBody title={title} open={open} />
@@ -99,7 +99,7 @@ function TitleDetailsBody({ title, open }: { title: MediaTitle; open: boolean })
         ) : (
           <div className="flex h-full items-center justify-center text-zinc-700"><Clapperboard className="size-10" aria-hidden /></div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#181818] via-[#181818]/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#16275a] via-[#16275a]/30 to-transparent" />
         <div className="absolute inset-x-6 bottom-4">
           {merged.logoUrl ? (
             <div className="relative h-14 w-3/4 max-w-sm sm:h-20">

@@ -1,9 +1,6 @@
-import { AuthForm } from "@/components/account/auth-form";
+import { redirect } from "next/navigation";
 
-export default function SignUpPage() {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-[#141414] px-4">
-      <AuthForm mode="sign-up" />
-    </main>
-  );
+// Legacy URL kept so old links and bookmarks keep working.
+export default function LegacySignUpPage() {
+  redirect("/account/register");
 }

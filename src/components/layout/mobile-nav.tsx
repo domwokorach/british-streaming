@@ -13,8 +13,8 @@ export function MobileNav() {
   return (
     <Sheet>
       <SheetTrigger render={<Button aria-label="Open navigation" variant="ghost" size="icon" className="text-white hover:bg-white/10 md:hidden" />}><Menu /></SheetTrigger>
-      <SheetContent side="left" className="w-72 border-white/10 bg-[#141414] p-0 text-white">
-        <div className="border-b border-white/10 px-6 py-7"><span className="text-2xl font-black tracking-[-0.12em] text-[#e50914]">NETFLIX</span></div>
+      <SheetContent side="left" className="w-72 border-white/10 bg-[#0d1b3e] p-0 text-white">
+        <div className="border-b border-white/10 px-6 py-7"><span className="text-xl font-extrabold tracking-wide text-[#a78bfa]">WORLDSTREAMING</span></div>
         <nav className="flex flex-col p-3">
           {NAV_ITEMS.map((item) => {
             const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);

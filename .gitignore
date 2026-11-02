@@ -42,3 +42,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# terraform
+.terraform/
+*.tfstate*
+*.tfplan
+terraform.tfvars
+!terraform.tfvars.example
+/playwright-report/
+/test-results/

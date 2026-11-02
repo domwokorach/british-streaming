@@ -1,0 +1,101 @@
+name: Deploy to one environment
+on:
+  workflow_call:
+    inputs:
+      environment: { type: string, required: true }
+      image_digest: { type: string, required: true }
+      change_type: { type: string, default: feature }
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ steps.out.outputs.url }}
+    env:
+      AWS_REGION: eu-west-2
+      TF_DIR: infra/terraform/envs/${{ inputs.environment == 'production' && 'prod' || inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: aws-actions/configure-aws-credentials@v4
+        with: { role-to-assume: "${{ vars.AWS_DEPLOY_ROLE_ARN }}", aws-region: "${{ env.AWS_REGION }}" }
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: 1.10.5 }
+
+      - name: Error-budget gate
+        if: inputs.environment == 'production'
+        run: node scripts/slo/deploy-gate.mjs --change-type "${{ inputs.change_type }}"
+        env:
+          PROMETHEUS_URL: ${{ vars.PROMETHEUS_URL }}
+          PROMETHEUS_TOKEN: ${{ secrets.PROMETHEUS_TOKEN }}
+
+      - name: Write environment Terraform variables
+        # TF_VARS_JSON is a (non-secret) GitHub environment variable holding root_domain, hosted_zone_id,
+        # alert_email and secret_arns (ARNs only; secret values never leave AWS Secrets Manager).
+        run: echo '${{ vars.TF_VARS_JSON }}' > "$TF_DIR/ci.auto.tfvars.json"
+
+      - name: Init
+        run: terraform -chdir="$TF_DIR" init -input=false -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
+
+      - name: Record currently running image (rollback target)
+        id: prev
+        run: |
+          NAME="worldstreaming-${{ inputs.environment == 'production' && 'prod' || inputs.environment }}"
+          TD=$(aws ecs describe-services --cluster "$NAME" --services "$NAME" --query 'services[0].taskDefinition' --output text 2>/dev/null || echo None)
+          IMG=$([ "$TD" != None ] && aws ecs describe-task-definition --task-definition "$TD" --query 'taskDefinition.containerDefinitions[0].image' --output text || echo "")
+          echo "image=$IMG" >> "$GITHUB_OUTPUT"
+
+      - name: Plan
+        run: |
+          terraform -chdir="$TF_DIR" plan -input=false -out=tfplan \
+            -var "image=${{ vars.ECR_REPOSITORY_URL }}@${{ inputs.image_digest }}"
+
+      - name: Refuse plans that destroy anything in production
+        if: inputs.environment == 'production'
+        run: |
+          terraform -chdir="$TF_DIR" show -json tfplan | jq -e '[.resource_changes[]? | select(.change.actions | index("delete"))] | length == 0' >/dev/null \
+            || { echo "Plan contains deletions; run the Terraform workflow manually with explicit approval."; exit 1; }
+
+      - name: Apply
+        run: terraform -chdir="$TF_DIR" apply -input=false tfplan
+
+      - id: out
+        run: echo "url=$(terraform -chdir="$TF_DIR" output -raw url)" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for ECS to reach steady state
+        run: |
+          aws ecs wait services-stable --cluster "$(terraform -chdir="$TF_DIR" output -raw cluster_name)" --services "$(terraform -chdir="$TF_DIR" output -raw service_name)"
+
+      - name: Smoke test
+        run: bash scripts/ci/smoke-url.sh "${{ steps.out.outputs.url }}"
+
+      - name: Verify error rate and latency after deploy
+        if: inputs.environment == 'production' && vars.PROMETHEUS_URL != ''
+        run: |
+          sleep 300
+          node scripts/slo/deploy-gate.mjs --post-deploy # fails if the 5m burn rate is >= the page threshold
+        env:
+          PROMETHEUS_URL: ${{ vars.PROMETHEUS_URL }}
+          PROMETHEUS_TOKEN: ${{ secrets.PROMETHEUS_TOKEN }}
+
+      - name: Automatic rollback to previous image
+        if: failure() && steps.prev.outputs.image != '' && steps.out.outputs.url != ''
+        run: |
+          terraform -chdir="$TF_DIR" apply -input=false -auto-approve \
+            -var "image=${{ steps.prev.outputs.image }}"
+          bash scripts/ci/smoke-url.sh "${{ steps.out.outputs.url }}"
+          echo "::error::Deployment failed verification; rolled back to ${{ steps.prev.outputs.image }}"
+
+      - name: Record deployment
+        if: always()
+        run: |
+          echo "### ${{ inputs.environment }} deployment" >> "$GITHUB_STEP_SUMMARY"
+          echo "- result: ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- image: ${{ inputs.image_digest }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- commit: $GITHUB_SHA by $GITHUB_ACTOR" >> "$GITHUB_STEP_SUMMARY"

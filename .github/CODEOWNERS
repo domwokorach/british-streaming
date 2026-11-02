@@ -1,0 +1,7 @@
+# Replace @OWNER/... with real GitHub users or teams. Branch protection requires code-owner review.
+*                      @domwokorach
+/infra/                @domwokorach
+/.github/              @domwokorach
+/slo/                  @domwokorach
+/monitoring/           @domwokorach
+/Dockerfile            @domwokorach

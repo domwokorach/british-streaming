@@ -1,0 +1,13 @@
+.git
+.github
+.next
+node_modules
+infra
+docs
+tests
+monitoring
+.env
+.env.*
+!.env.example
+*.md
+tsconfig.tsbuildinfo

@@ -17,14 +17,14 @@ export default function MyListPage() {
   const loading = authLoading || (Boolean(user) && (listLoading || titlesLoading));
 
   return (
-    <main className="min-h-screen bg-[#141414] pb-12 text-white">
+    <main className="min-h-screen bg-[#0d1b3e] pb-12 text-white">
       <Navbar />
       <div className="pt-28">
         <h1 className="px-4 text-3xl font-bold sm:px-10">My List</h1>
         {!authLoading && !user && (
           <div className="px-4 pt-6 sm:px-10">
             <p className="text-zinc-400">Sign in to save titles to your list.</p>
-            <Button render={<Link href="/account/sign-in" />} nativeButton={false} className="mt-4 bg-[#e50914] font-semibold hover:bg-[#e50914]/85">Sign In</Button>
+            <Button render={<Link href="/account/sign-in" />} nativeButton={false} className="mt-4 bg-[#7c3aed] font-semibold text-white hover:bg-[#7c3aed]/85">Sign In</Button>
           </div>
         )}
         {user && loading && (

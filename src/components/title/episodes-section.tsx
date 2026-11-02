@@ -66,7 +66,7 @@ export function EpisodesSection({ seriesId, seasons, progress }: EpisodesSection
                   )}
                   {isCurrent && progress && (
                     <div className="absolute inset-x-0 bottom-0 h-[3px] bg-white/25">
-                      <div className="h-full bg-[#e50914]" style={{ width: `${Math.min(100, Math.max(0, progress.percent))}%` }} />
+                      <div className="h-full bg-[#7c3aed]" style={{ width: `${Math.min(100, Math.max(0, progress.percent))}%` }} />
                     </div>
                   )}
                 </div>

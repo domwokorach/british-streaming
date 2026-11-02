@@ -1,0 +1,13 @@
+root_domain    = "example.com"
+hosted_zone_id = "Z0000000000000"
+alert_email    = "oncall@example.com"
+image          = "123456789012.dkr.ecr.eu-west-2.amazonaws.com/worldstreaming-staging@sha256:REPLACE"
+secret_arns = {
+  TMDB_API_READ_TOKEN                  = "arn:aws:secretsmanager:eu-west-2:123456789012:secret:ws/staging/tmdb"
+  SUPABASE_SECRET_KEY                  = "arn:aws:secretsmanager:eu-west-2:123456789012:secret:ws/staging/supabase"
+  NEXT_PUBLIC_SUPABASE_URL             = "arn:aws:secretsmanager:eu-west-2:123456789012:secret:ws/staging/supabase-url"
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "arn:aws:secretsmanager:eu-west-2:123456789012:secret:ws/staging/supabase-pub"
+  AUTH_JWT_SECRET                      = "arn:aws:secretsmanager:eu-west-2:123456789012:secret:ws/staging/auth-jwt"
+  RESEND_API_KEY                       = "arn:aws:secretsmanager:eu-west-2:123456789012:secret:ws/staging/resend"
+  METRICS_TOKEN                        = "arn:aws:secretsmanager:eu-west-2:123456789012:secret:ws/staging/metrics"
+}

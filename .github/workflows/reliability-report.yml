@@ -1,0 +1,23 @@
+name: Reliability report
+on:
+  schedule:
+    - cron: "0 8 * * 1" # weekly, Monday 08:00 UTC
+    - cron: "0 8 1 * *" # monthly, 1st
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    if: vars.PROMETHEUS_URL != ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node scripts/slo/report.mjs ${{ github.event.schedule == '0 8 1 * *' && 'monthly' || 'weekly' }} > report.md
+        env:
+          PROMETHEUS_URL: ${{ vars.PROMETHEUS_URL }}
+          PROMETHEUS_TOKEN: ${{ secrets.PROMETHEUS_TOKEN }}
+      - run: gh issue create --title "Reliability report $(date -u +%F)" --label reliability --body-file report.md
+        env: { GH_TOKEN: "${{ github.token }}" }

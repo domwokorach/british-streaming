@@ -1,0 +1,110 @@
+# Local development + observability stack:  docker compose up --build
+# App: http://localhost:3000  Grafana: http://localhost:3001 (admin / admin, local only)
+name: worldstreaming
+
+x-hardening: &hardening
+  restart: unless-stopped
+  security_opt: ["no-new-privileges:true"]
+  cap_drop: [ALL]
+  stop_grace_period: 30s
+
+services:
+  web:
+    <<: *hardening
+    build:
+      context: .
+      args:
+        APP_VERSION: local
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_APP_URL: http://localhost:3000
+    ports: ["3000:3000"]
+    env_file: [.env.local]
+    environment:
+      APP_ENV: local
+      APP_URL: http://localhost:3000
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:?set AUTH_JWT_SECRET in .env (openssl rand -base64 48)}
+      SERVICE_NAME: worldstreaming-web
+      METRICS_TOKEN: ${METRICS_TOKEN:-local-metrics-token}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+    read_only: true
+    tmpfs: ["/tmp", "/app/.next/cache"]
+    mem_limit: 512m
+    cpus: 1.0
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
+    labels: { logging: promtail }
+
+  prometheus:
+    <<: *hardening
+    image: prom/prometheus:v2.55.1
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=35d", "--web.enable-lifecycle"]
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus:ro
+      - prometheus-data:/prometheus
+    ports: ["9090:9090"]
+    read_only: true
+    mem_limit: 1g
+    healthcheck: { test: ["CMD", "wget", "-qO-", "http://127.0.0.1:9090/-/healthy"], interval: 15s, timeout: 3s, retries: 3 }
+    depends_on: [web]
+
+  alertmanager:
+    <<: *hardening
+    image: prom/alertmanager:v0.27.0
+    volumes: ["./monitoring/alertmanager:/etc/alertmanager:ro"]
+    ports: ["9093:9093"]
+    read_only: true
+    mem_limit: 128m
+    healthcheck: { test: ["CMD", "wget", "-qO-", "http://127.0.0.1:9093/-/healthy"], interval: 15s, timeout: 3s, retries: 3 }
+
+  grafana:
+    <<: *hardening
+    image: grafana/grafana:11.3.0
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_HTTP_PORT: "3001"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports: ["3001:3001"]
+    mem_limit: 384m
+    healthcheck: { test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/api/health"], interval: 15s, timeout: 3s, retries: 5 }
+    depends_on: [prometheus, loki]
+
+  loki:
+    <<: *hardening
+    image: grafana/loki:3.2.1
+    command: ["-config.file=/etc/loki/loki.yml"]
+    volumes: ["./monitoring/loki:/etc/loki:ro", "loki-data:/loki"]
+    mem_limit: 512m
+    healthcheck: { test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3100/ready || exit 1"], interval: 15s, timeout: 3s, retries: 5 }
+
+  promtail:
+    <<: *hardening
+    image: grafana/promtail:3.2.1
+    command: ["-config.file=/etc/promtail/promtail.yml"]
+    volumes:
+      - ./monitoring/promtail:/etc/promtail:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    mem_limit: 128m
+    depends_on: [loki]
+
+  otel-collector:
+    <<: *hardening
+    image: otel/opentelemetry-collector-contrib:0.111.0
+    command: ["--config=/etc/otel/config.yml"]
+    volumes: ["./monitoring/otel:/etc/otel:ro"]
+    ports: ["4318:4318"]
+    read_only: true
+    mem_limit: 256m
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  loki-data:

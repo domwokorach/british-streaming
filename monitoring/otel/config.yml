@@ -1,0 +1,15 @@
+# Receives OTLP traces/metrics from the app and forwards them. Swap `debug` for your tracing backend
+# (Tempo, Jaeger, Honeycomb, AWS X-Ray via awsxray exporter) per environment.
+receivers:
+  otlp: { protocols: { http: { endpoint: 0.0.0.0:4318 } } }
+processors:
+  batch: {}
+  memory_limiter: { check_interval: 1s, limit_mib: 200 }
+  resource:
+    attributes: [{ key: service.namespace, value: worldstreaming, action: upsert }]
+exporters:
+  debug: { verbosity: basic }
+service:
+  telemetry: { metrics: { address: 0.0.0.0:8888 } }
+  pipelines:
+    traces: { receivers: [otlp], processors: [memory_limiter, resource, batch], exporters: [debug] }

@@ -1,47 +1,57 @@
 "use client";
 
-import type { Session, User } from "@supabase/supabase-js";
-import { createContext, useContext, useEffect, useState } from "react";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { api, refreshSession } from "@/lib/auth/client";
+
+export interface AuthUser { id: string; fullName: string; email: string; emailVerified: boolean; role: "user" | "admin" }
 
 interface AuthContextValue {
-  user: User | null;
-  session: Session | null;
+  user: AuthUser | null;
   loading: boolean;
+  /** Re-reads the session from the server (call after sign-in). */
+  refreshUser: () => Promise<AuthUser | null>;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+// Refresh comfortably inside the default 15-minute access token lifetime.
+const PROACTIVE_REFRESH_MS = 10 * 60 * 1000;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let supabase;
-    try {
-      supabase = createSupabaseBrowserClient();
-    } catch {
-      queueMicrotask(() => setLoading(false));
-      return;
-    }
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
-    });
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, nextSession) => setSession(nextSession));
-    return () => subscription.subscription.unsubscribe();
+  const refreshUser = useCallback(async () => {
+    const res = await api<{ user: AuthUser }>("/api/auth/me"); // api() transparently refreshes an expired access token
+    const next = res.ok ? res.data.user : null;
+    setUser(next);
+    setLoading(false);
+    return next;
   }, []);
 
-  async function signOut() {
-    try {
-      await createSupabaseBrowserClient().auth.signOut();
-    } catch {
-      // Supabase isn't configured; nothing to sign out of.
-    }
-  }
+  useEffect(() => {
+    queueMicrotask(() => void refreshUser());
+  }, [refreshUser]);
 
-  return <AuthContext.Provider value={{ user: session?.user ?? null, session, loading, signOut }}>{children}</AuthContext.Provider>;
+  // Keep the session warm while signed in, and re-validate when the tab returns (e.g. revoked elsewhere).
+  useEffect(() => {
+    if (!user) return;
+    const timer = setInterval(async () => {
+      if (document.visibilityState === "visible" && !(await refreshSession())) setUser(null);
+    }, PROACTIVE_REFRESH_MS);
+    const onVisible = () => { if (document.visibilityState === "visible") void refreshUser(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); };
+  }, [user, refreshUser]);
+
+  const signOut = useCallback(async () => {
+    await api("/api/auth/sign-out", { method: "POST", body: {} });
+    setUser(null);
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- deliberate hard navigation
+    window.location.href = "/account/sign-in"; // deliberate full navigation: clears all in-memory per-user state
+  }, []);
+
+  return <AuthContext.Provider value={{ user, loading, refreshUser, signOut }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

@@ -2,40 +2,33 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { useUserStateRealtime } from "@/lib/supabase/realtime";
+import { api, notifyUserStateChanged } from "@/lib/auth/client";
 import { useAuth } from "@/providers/auth-provider";
+import { useUserStateSync } from "./use-user-state-sync";
 
 interface MyListEntry { tmdbId: number; mediaType: "movie" | "tv"; }
 
-/** Real, persisted "My List" backed by the `my_list` Supabase table — synced live across tabs via Realtime. */
+/** Persisted "My List" via /api/me/list; other tabs update immediately and this tab on focus. */
 export function useMyList() {
   const { user } = useAuth();
   const [entries, setEntries] = useState<MyListEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    await Promise.resolve();
     if (!user) {
       setEntries([]);
       setLoading(false);
       return;
     }
-    try {
-      const supabase = createSupabaseBrowserClient();
-      const { data } = await supabase.from("my_list").select("tmdb_id, media_type").eq("user_id", user.id);
-      setEntries((data ?? []).map((row) => ({ tmdbId: row.tmdb_id as number, mediaType: row.media_type as "movie" | "tv" })));
-    } catch {
-      setEntries([]);
-    } finally {
-      setLoading(false);
-    }
+    const res = await api<{ entries: MyListEntry[] }>("/api/me/list");
+    setEntries(res.ok ? res.data.entries : []);
+    setLoading(false);
   }, [user]);
 
   useEffect(() => {
     queueMicrotask(refresh);
   }, [refresh]);
-  useUserStateRealtime(user?.id ?? null, refresh);
+  useUserStateSync(Boolean(user), refresh);
 
   const isSaved = useCallback((tmdbId: number, mediaType: "movie" | "tv") => entries.some((entry) => entry.tmdbId === tmdbId && entry.mediaType === mediaType), [entries]);
 
@@ -45,13 +38,15 @@ export function useMyList() {
         toast.error("Sign in required", { description: "Sign in to add titles to My List." });
         return;
       }
-      const supabase = createSupabaseBrowserClient();
-      if (isSaved(tmdbId, mediaType)) {
-        await supabase.from("my_list").delete().eq("user_id", user.id).eq("tmdb_id", tmdbId).eq("media_type", mediaType);
-      } else {
-        await supabase.from("my_list").insert({ user_id: user.id, tmdb_id: tmdbId, media_type: mediaType });
-      }
-      refresh();
+      const saved = isSaved(tmdbId, mediaType);
+      // Optimistic update, rolled back if the server refuses.
+      setEntries((current) => (saved ? current.filter((e) => !(e.tmdbId === tmdbId && e.mediaType === mediaType)) : [...current, { tmdbId, mediaType }]));
+      const res = saved
+        ? await api(`/api/me/list?tmdbId=${tmdbId}&mediaType=${mediaType}`, { method: "DELETE" })
+        : await api("/api/me/list", { method: "POST", body: { tmdbId, mediaType } });
+      if (!res.ok) toast.error("Couldn't update My List", { description: res.error.message });
+      await refresh();
+      notifyUserStateChanged();
     },
     [user, isSaved, refresh],
   );

@@ -15,7 +15,7 @@ export default async function FilmsPage() {
     { title: "Coming Soon", items: value(3) },
   ])).filter((row) => row.items.length > 0);
   return (
-    <main className="min-h-screen bg-[#141414] pb-12 text-white">
+    <main className="min-h-screen bg-[#0d1b3e] pb-12 text-white">
       <Navbar />
       <div className="pt-28">
         <h1 className="px-4 text-3xl font-bold sm:px-10">Films</h1>

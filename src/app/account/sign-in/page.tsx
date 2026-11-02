@@ -1,9 +1,9 @@
-import { AuthForm } from "@/components/account/auth-form";
+import type { Metadata } from "next";
+import { SignInForm } from "@/components/account/sign-in-form";
 
-export default function SignInPage() {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-[#141414] px-4">
-      <AuthForm mode="sign-in" />
-    </main>
-  );
+export const metadata: Metadata = { title: "Sign In — WorldStreaming" };
+
+export default async function SignInPage({ searchParams }: PageProps<"/account/sign-in">) {
+  const { next, notice } = await searchParams;
+  return <SignInForm next={typeof next === "string" ? next : undefined} notice={typeof notice === "string" ? notice : undefined} />;
 }

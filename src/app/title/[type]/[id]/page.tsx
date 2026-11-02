@@ -28,11 +28,11 @@ export default async function TitleDetailsPage({ params }: PageProps<"/title/[ty
   const recommendationRows = (await toPresentationRows(await getRecommendationRows(type, numericId))).filter((row) => row.items.length > 0);
 
   return (
-    <main className="min-h-screen bg-[#141414] pb-16 text-white">
+    <main className="min-h-screen bg-[#0d1b3e] pb-16 text-white">
       <Navbar />
       <section className="relative h-[56vh] min-h-[380px] max-h-[620px]">
         {featured.title.backdropUrl && <Image src={featured.title.backdropUrl} alt="" fill priority sizes="100vw" className="object-cover object-top" />}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-[#141414]/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0d1b3e] via-[#0d1b3e]/40 to-transparent" />
       </section>
 
       <div className="relative z-10 -mt-24 flex flex-col gap-6 px-4 sm:-mt-32 sm:flex-row sm:px-10">
@@ -75,7 +75,7 @@ export default async function TitleDetailsPage({ params }: PageProps<"/title/[ty
               {details.watchProviders.flatrate.length > 0 && <ProviderRow label="Stream" providers={details.watchProviders.flatrate} />}
               {details.watchProviders.rent.length > 0 && <ProviderRow label="Rent" providers={details.watchProviders.rent} />}
               {details.watchProviders.buy.length > 0 && <ProviderRow label="Buy" providers={details.watchProviders.buy} />}
-              <p className="text-[11px] text-zinc-500">Availability data from TMDB &middot; JustWatch. This app does not stream Netflix content directly.</p>
+              <p className="text-[11px] text-zinc-500">Availability data from TMDB &middot; JustWatch. This app does not stream this content directly.</p>
             </div>
           )}
         </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion, type Variants } from "motion/react";
+import { SPRING } from "@/lib/motion";
 import { ChevronDown, Play, X } from "lucide-react";
 
 import { DialogTrigger } from "@/components/ui/dialog";
@@ -49,6 +50,7 @@ interface MediaCardProps {
 }
 
 export function MediaCard({ title, variant = "standard", onRemove }: MediaCardProps) {
+  const isNewlyAdded = title.year === new Date().getFullYear() && !title.progress;
   const [expanded, setExpanded] = useState(false);
   const [originX, setOriginX] = useState<OriginX>("center");
   const expandTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -101,7 +103,7 @@ export function MediaCard({ title, variant = "standard", onRemove }: MediaCardPr
   }
 
   const showPanel = expanded && hasHover;
-  const artworkSizes = "(max-width: 640px) 64vw, (max-width: 1024px) 33vw, 19vw";
+  const artworkSizes = "(max-width: 640px) 42vw, (max-width: 1024px) 28vw, 17vw";
   const transformOrigin = `${originX === "left" ? "0%" : originX === "right" ? "100%" : "50%"} 30%`;
 
   return (
@@ -116,24 +118,29 @@ export function MediaCard({ title, variant = "standard", onRemove }: MediaCardPr
       >
         <motion.div
           animate={{ scale: showPanel && !reducedMotion ? 1.08 : 1 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
+          // Spring lift on hover; a small press-down on touch/click gives immediate tactile feedback.
+          whileTap={reducedMotion ? undefined : { scale: 0.97 }}
+          transition={SPRING.card}
           style={{ transformOrigin }}
           className={`relative ${showPanel ? "z-30" : "z-0"}`}
         >
           <DialogTrigger
-            render={<button type="button" aria-label={`See more about ${title.name}`} className="relative block aspect-video w-full overflow-hidden rounded-[3px] bg-zinc-800 shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-white" />}
+            render={<button type="button" aria-label={`${isNewlyAdded ? "Recently added: " : ""}See more about ${title.name}`} className="relative block aspect-[2/3] w-full overflow-hidden rounded-lg bg-[#16275a] shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-white" />}
           >
             <MediaArtwork title={title} sizes={artworkSizes} showPreview={showPanel && !reducedMotion} trailerKey={trailerKey} />
+            {isNewlyAdded && (
+              <span className="absolute inset-x-1.5 bottom-1.5 z-20 rounded-[3px] bg-[#7c3aed] px-1.5 py-0.5 text-center text-[11px] font-semibold uppercase tracking-wide text-white">Recently added</span>
+            )}
             {title.progress && (
               <div className="absolute inset-x-0 bottom-0 h-[3px] bg-white/25">
-                <div className="h-full bg-[#e50914]" style={{ width: `${Math.min(100, Math.max(0, title.progress.percent))}%` }} />
+                <div className="h-full bg-[#7c3aed]" style={{ width: `${Math.min(100, Math.max(0, title.progress.percent))}%` }} />
               </div>
             )}
           </DialogTrigger>
 
           {/* Always-on title line — never gated by hover/pointer capability, so the name is never
               missing on touch devices or when a hover preview never mounts. */}
-          <p className="relative z-20 mt-1.5 truncate px-0.5 text-xs font-medium text-zinc-200 sm:text-sm">{title.name}</p>
+          <p className="relative z-20 sr-only">{title.name}</p>
 
           <AnimatePresence>
             {showPanel && (
@@ -142,7 +149,7 @@ export function MediaCard({ title, variant = "standard", onRemove }: MediaCardPr
                 initial="hidden"
                 animate="visible"
                 exit="exit"
-                className="absolute left-0 right-0 top-full z-30 origin-top overflow-hidden rounded-b-md bg-zinc-950 shadow-2xl"
+                className="absolute left-0 right-0 top-full z-30 origin-top overflow-hidden rounded-b-lg bg-[#0a1331] shadow-2xl"
               >
                 <div className="relative z-40 space-y-2 px-3 pb-3 pt-3">
                   {title.progress?.seasonNumber && title.progress.episodeNumber && (

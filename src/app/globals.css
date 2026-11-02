@@ -10,9 +10,9 @@
   --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
   --font-heading: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
-  --color-netflix-red: var(--netflix-red);
-  --color-netflix-black: var(--netflix-black);
-  --color-netflix-surface: var(--netflix-surface);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-surface: var(--brand-surface);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -74,9 +74,9 @@
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   --radius: 0.375rem;
-  --netflix-red: #e50914;
-  --netflix-black: #141414;
-  --netflix-surface: #181818;
+  --brand-accent: #7c3aed;
+  --brand-navy: #0d1b3e;
+  --brand-surface: #16275a;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -90,22 +90,22 @@
 }
 
 .dark {
-  --netflix-red: #e50914;
-  --netflix-black: #141414;
-  --netflix-surface: #181818;
-  --background: oklch(0.145 0 0);
+  --brand-accent: #7c3aed;
+  --brand-navy: #0d1b3e;
+  --brand-surface: #16275a;
+  --background: #0d1b3e;
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
+  --card: #16275a;
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
+  --popover: #16275a;
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
+  --primary: #7c3aed;
+  --primary-foreground: #ffffff;
+  --secondary: #1f3170;
   --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
+  --muted: #1f3170;
   --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
+  --accent: #1f3170;
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
@@ -139,8 +139,18 @@
 
   body {
     min-width: 320px;
-    background: #141414;
+    background: #0d1b3e;
+    overflow-x: clip;
   }
+  /* Slim, themed scrollbars (WebKit + Firefox). */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #3b2a7a transparent;
+  }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: #3b2a7a; border-radius: 9999px; border: 2px solid #0d1b3e; }
+  ::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
+  :focus-visible { outline: 2px solid #a78bfa; outline-offset: 2px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -153,3 +163,45 @@
     scroll-behavior: auto !important;
   }
 }
+
+@media (max-width: 767px) {
+  /* Reserve room for the fixed tab bar only on pages that render it. */
+  body:has(nav[aria-label="Primary"]) { padding-bottom: calc(3.5rem + env(safe-area-inset-bottom)); }
+}
+
+@keyframes hero-progress {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+/* ---- Scroll motion ------------------------------------------------------------------------- */
+
+/* Smooth in-page anchors, leaving room for the fixed header. Native scrolling is untouched. */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+html { scroll-padding-top: 6.5rem; overscroll-behavior-y: none; }
+
+/* Route entrance. Pure CSS so it runs from first paint, never waits on hydration and never blocks input. */
+@keyframes page-enter {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to { opacity: 1; transform: none; }
+}
+.page-enter { animation: page-enter 0.32s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+
+/* Reveal wrappers render hidden until hydrated; reduced-motion users must never see them that way. */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal], [data-reveal-text] *, .page-enter { opacity: 1 !important; transform: none !important; filter: none !important; clip-path: none !important; }
+}
+
+/* Animated gradient headline text. */
+@keyframes gradient-pan { to { background-position: 200% 50%; } }
+.text-gradient-animated {
+  background-image: linear-gradient(90deg, #a78bfa, #60a5fa, #c4b5fd, #a78bfa);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-pan 6s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) { .text-gradient-animated { animation: none; } }

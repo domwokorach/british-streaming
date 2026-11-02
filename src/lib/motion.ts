@@ -22,3 +22,15 @@ export const fadeUp = {
   animate: { opacity: 1, y: 0, scale: 1 },
   exit: { opacity: 0, y: 6, scale: 0.98 },
 };
+
+/** Shared spring presets. Stiffness/damping pairs are tuned for ~60 fps feel on mid-range phones (no overshoot except `bouncy`). */
+export const SPRING = {
+  /** Buttons and taps: fast, tight. */
+  press: { type: "spring", stiffness: 550, damping: 30 },
+  /** Card hover/lift. */
+  card: { type: "spring", stiffness: 320, damping: 28 },
+  /** Panels, overlays, sliders settling. */
+  soft: { type: "spring", stiffness: 180, damping: 26 },
+  /** Playful emphasis (use sparingly). */
+  bouncy: { type: "spring", stiffness: 380, damping: 16 },
+} as const;

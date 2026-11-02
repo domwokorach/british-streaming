@@ -1,0 +1,53 @@
+name: Terraform
+on:
+  pull_request:
+    paths: ["infra/terraform/**"]
+  schedule:
+    - cron: "17 5 * * *" # daily drift detection
+  workflow_dispatch:
+concurrency:
+  group: terraform-${{ github.ref }}
+  cancel-in-progress: false
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: { env: [dev, staging, prod] }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with: { role-to-assume: "${{ vars.AWS_PLAN_ROLE_ARN }}", aws-region: eu-west-2 } # read-only role
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: 1.10.5, terraform_wrapper: false }
+      - run: terraform -chdir=infra/terraform/envs/${{ matrix.env }} init -input=false -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
+      - name: Write environment Terraform variables
+        run: echo '${{ vars.TF_VARS_JSON }}' > infra/terraform/envs/${{ matrix.env }}/ci.auto.tfvars.json
+      - name: Find running image
+        id: img
+        run: |
+          NAME="worldstreaming-${{ matrix.env }}"
+          TD=$(aws ecs describe-services --cluster "$NAME" --services "$NAME" --query 'services[0].taskDefinition' --output text)
+          echo "image=$(aws ecs describe-task-definition --task-definition "$TD" --query 'taskDefinition.containerDefinitions[0].image' --output text)" >> "$GITHUB_OUTPUT"
+      - name: Plan
+        id: plan
+        # Drift = infrastructure differs from code. Exit code 2 means changes are pending.
+        run: |
+          set +e
+          terraform -chdir=infra/terraform/envs/${{ matrix.env }} plan -input=false -lock=false -detailed-exitcode -no-color \
+            -var "image=${{ steps.img.outputs.image }}" > plan.txt
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+          tail -n 60 plan.txt
+      - name: Open drift issue
+        if: github.event_name == 'schedule' && steps.plan.outputs.code == '2'
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: gh issue create --title "Terraform drift in ${{ matrix.env }}" --label drift --body "$(tail -n 60 plan.txt)"
+      - name: Fail on plan error
+        if: steps.plan.outputs.code == '1'
+        run: exit 1

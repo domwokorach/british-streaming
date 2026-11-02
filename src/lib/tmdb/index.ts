@@ -73,13 +73,13 @@ export function toMediaDetails(media: TmdbMedia, mediaType: "movie" | "tv"): Med
 
 const normalize = (items: TmdbMedia[], mediaType: "movie" | "tv") => items.map((item) => toMediaItem(item, mediaType));
 
-/** One rail of the homepage: a real, labelled TMDB query — never a fabricated "Netflix" ranking. */
+/** One rail of the homepage: a real, labelled TMDB query — never a fabricated ranking. */
 export interface CatalogueRow { title: string; items: MediaItem[]; variant?: "standard" | "top-ten" | "continue-watching"; }
 
 const DOCUMENTARY_GENRE = "99";
 const CRIME_GENRE = "80";
 
-export async function getHomepageCatalogue(): Promise<{ featured: MediaDetails | null; rows: CatalogueRow[] }> {
+export async function getHomepageCatalogue(): Promise<{ featured: MediaDetails[]; rows: CatalogueRow[] }> {
   const region = env.tmdbRegion;
   const results = await Promise.allSettled([
     getTrending("movie"),
@@ -106,8 +106,8 @@ export async function getHomepageCatalogue(): Promise<{ featured: MediaDetails |
     { title: `Trending in the ${region}`, items: [...trendingMovies, ...trendingSeries].sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0)) },
     { title: `Popular Films in the ${region}`, items: value(2, "movie"), variant: "top-ten" as const },
     { title: `Popular Series in the ${region}`, items: value(3, "tv"), variant: "top-ten" as const },
-    { title: `Popular on Netflix in the ${region}`, items: value(8, "movie") },
-    { title: "Only on Netflix: Series", items: value(9, "tv") },
+    { title: `Popular to Stream in the ${region}`, items: value(8, "movie") },
+    { title: "Series to Stream", items: value(9, "tv") },
     { title: "Top-Rated Films", items: value(4, "movie") },
     { title: "Top-Rated Series", items: value(5, "tv") },
     { title: "New Releases", items: value(7, "movie") },
@@ -116,12 +116,21 @@ export async function getHomepageCatalogue(): Promise<{ featured: MediaDetails |
     { title: "Crime Films", items: value(11, "movie") },
   ].filter((row) => row.items.length > 0);
 
-  const featuredPick = trendingMovies.find((item) => item.backdropPath) ?? trendingSeries.find((item) => item.backdropPath) ?? null;
-  const featured = featuredPick
-    ? await (featuredPick.mediaType === "tv" ? getSeriesDetails(featuredPick.id) : getMovieDetails(featuredPick.id))
-        .then((media) => toMediaDetails(media, featuredPick.mediaType))
-        .catch(() => null)
-    : null;
+  const HERO_SLIDES = 5;
+  // Alternate the top trending film and series so the hero carousel mixes both kinds.
+  const withBackdrop = (items: MediaItem[]) => items.filter((item) => item.backdropPath);
+  const films = withBackdrop(trendingMovies);
+  const shows = withBackdrop(trendingSeries);
+  const featuredPicks = Array.from({ length: HERO_SLIDES }, (_, index) => (index % 2 === 0 ? films : shows)[Math.floor(index / 2)]).filter(Boolean);
+  const featured = (
+    await Promise.all(
+      featuredPicks.map((pick) =>
+        (pick.mediaType === "tv" ? getSeriesDetails(pick.id) : getMovieDetails(pick.id))
+          .then((media) => toMediaDetails(media, pick.mediaType))
+          .catch(() => null)
+      )
+    )
+  ).filter((details): details is MediaDetails => details !== null);
 
   return { featured, rows };
 }

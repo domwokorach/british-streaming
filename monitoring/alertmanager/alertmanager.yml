@@ -1,0 +1,21 @@
+route:
+  receiver: default
+  group_by: [alertname, service]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    - matchers: [severity="page"]
+      receiver: oncall
+      repeat_interval: 1h
+inhibit_rules:
+  # A page-level burn alert already covers its ticket-level sibling for the same SLO.
+  - source_matchers: [severity="page"]
+    target_matchers: [severity="ticket"]
+    equal: [slo, service]
+receivers:
+  - name: default
+  # Wire real destinations via secrets in each environment; placeholders keep the config valid locally.
+  - name: oncall
+    # webhook_configs:
+    #   - url_file: /etc/alertmanager/secrets/pagerduty-webhook-url

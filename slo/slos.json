@@ -1,0 +1,38 @@
+{
+  "service": "worldstreaming-web",
+  "windowDays": 30,
+  "sla": { "availability": 99.5, "note": "Customer-facing commitment; deliberately looser than the internal SLO so the SLO fires first." },
+  "slos": [
+    {
+      "name": "availability",
+      "description": "Share of API requests that do not return a 5xx.",
+      "objective": 99.9,
+      "sli": { "type": "ratio", "good": "sum(rate(http_requests_total{status!=\"5xx\"}[$WINDOW]))", "total": "sum(rate(http_requests_total[$WINDOW]))" }
+    },
+    {
+      "name": "latency",
+      "description": "Share of API requests served in under 300 ms (p95 target, measured on the 0.3 s histogram bucket).",
+      "objective": 95,
+      "sli": { "type": "ratio", "good": "sum(rate(http_request_duration_seconds_bucket{le=\"0.3\"}[$WINDOW]))", "total": "sum(rate(http_request_duration_seconds_count[$WINDOW]))" }
+    },
+    {
+      "name": "server_errors",
+      "description": "Server-side failures stay below 0.1% of eligible requests.",
+      "objective": 99.9,
+      "sli": { "type": "ratio", "good": "sum(rate(http_requests_total{status!=\"5xx\"}[$WINDOW]))", "total": "sum(rate(http_requests_total[$WINDOW]))" }
+    }
+  ],
+  "burnRateAlerts": [
+    { "severity": "page", "burnRate": 14.4, "long": "1h", "short": "5m", "note": "2% of the monthly budget in 1 hour" },
+    { "severity": "page", "burnRate": 6, "long": "6h", "short": "30m", "note": "5% of the monthly budget in 6 hours" },
+    { "severity": "ticket", "burnRate": 3, "long": "1d", "short": "2h", "note": "10% of the monthly budget in 1 day" },
+    { "severity": "ticket", "burnRate": 1, "long": "3d", "short": "6h", "note": "10% of the monthly budget in 3 days" }
+  ],
+  "deploymentPolicy": {
+    "warnBelowBudgetRemainingPct": 50,
+    "restrictBelowBudgetRemainingPct": 25,
+    "freezeBelowBudgetRemainingPct": 0,
+    "restrictedAllows": ["hotfix", "security", "rollback", "reliability"],
+    "note": "Restricted: only changes labelled in restrictedAllows may deploy. Frozen: only rollbacks."
+  }
+}

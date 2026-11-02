@@ -22,7 +22,7 @@ function maturityRating(voteAverage: number) {
   return "12";
 }
 
-/** Netflix-style search: an InputGroup that expands from an icon, with results in a Command list below it. */
+/** Expandable search: an InputGroup that expands from an icon, with results in a Command list below it. */
 export function SearchBar() {
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
@@ -103,7 +103,7 @@ export function SearchBar() {
               autoFocus
               value={query}
               onValueChange={setQuery}
-              aria-label="Search Netflix"
+              aria-label="Search WorldStreaming"
               placeholder="Titles, people, genres"
               className="text-sm text-white placeholder:text-zinc-400"
             />
@@ -134,7 +134,7 @@ export function SearchBar() {
               className="absolute right-0 top-full z-50 mt-2 origin-top-right"
             >
               <CommandList
-                className="max-h-[70vh] w-[calc(100vw-2rem)] rounded-md bg-[#141414] text-white shadow-2xl ring-1 ring-white/15 sm:w-96"
+                className="max-h-[70vh] w-[calc(100vw-2rem)] rounded-md bg-[#0d1b3e] text-white shadow-2xl ring-1 ring-white/15 sm:w-96"
               >
                 {loading ? (
                   <div className="space-y-2 p-1">
