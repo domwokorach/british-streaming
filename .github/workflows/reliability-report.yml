@@ -13,7 +13,7 @@ jobs:
     if: vars.PROMETHEUS_URL != ''
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: 22 }
       - run: node scripts/slo/report.mjs ${{ github.event.schedule == '0 8 1 * *' && 'monthly' || 'weekly' }} > report.md
         env:
