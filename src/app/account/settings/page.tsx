@@ -35,7 +35,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="min-h-dvh bg-[#0d1b3e] pb-12 text-white">
+    <main className="min-h-dvh bg-ws-bg pb-12 text-white">
       <Navbar />
       <div className="mx-auto max-w-2xl px-4 pt-28 sm:px-10">
         <h1 className="text-3xl font-bold">Settings</h1>
@@ -46,18 +46,18 @@ export default function SettingsPage() {
           </TabsList>
           <TabsContent value="devices" className="mt-4">
         <h2 className="text-xl font-semibold">Active sessions</h2>
-        <p className="mt-1 text-sm text-zinc-400">Devices currently signed in to your account.</p>
+        <p className="mt-1 text-sm text-ws-text-2">Devices currently signed in to your account.</p>
         <ul className="mt-4 space-y-3">
           {(sessions ?? []).map((s) => (
             <li key={s.id} className="flex items-center justify-between gap-3 rounded-md border border-white/10 p-4">
               <div className="min-w-0">
-                <p className="truncate font-medium">{describe(s.userAgent)} {s.current && <span className="ml-2 rounded bg-[#7c3aed] px-2 py-0.5 text-xs">This device</span>}</p>
-                <p className="text-xs text-zinc-400">Last active {new Date(s.lastUsedAt).toLocaleString()}{s.ip && s.ip !== "unknown" ? ` · ${s.ip}` : ""}</p>
+                <p className="truncate font-medium">{describe(s.userAgent)} {s.current && <span className="ml-2 rounded bg-ws-blue px-2 py-0.5 text-xs">This device</span>}</p>
+                <p className="text-xs text-ws-text-2">Last active {new Date(s.lastUsedAt).toLocaleString()}{s.ip && s.ip !== "unknown" ? ` · ${s.ip}` : ""}</p>
               </div>
               {!s.current && <Button variant="outline" size="sm" onClick={() => revoke(s.id)} className="shrink-0 border-white/20 text-white hover:bg-white/10">Sign out</Button>}
             </li>
           ))}
-          {sessions?.length === 0 && <li className="text-zinc-400">No active sessions.</li>}
+          {sessions?.length === 0 && <li className="text-ws-text-2">No active sessions.</li>}
         </ul>
           </TabsContent>
           <TabsContent value="tips" className="mt-4">
@@ -69,7 +69,7 @@ export default function SettingsPage() {
           </TabsContent>
         </Tabs>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Button onClick={signOutAll} className="bg-[#7c3aed] text-white hover:bg-[#6d2fd6]">Sign out of all devices</Button>
+          <Button onClick={signOutAll} className="bg-ws-blue text-white hover:bg-[#6d2fd6]">Sign out of all devices</Button>
           <Button onClick={() => signOut()} variant="outline" className="border-white/20 text-white hover:bg-white/10">Sign out</Button>
         </div>
       </div>

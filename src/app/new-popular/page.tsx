@@ -18,11 +18,11 @@ export default async function NewPopularPage() {
     { title: "Currently Airing", items: value(3, "tv") },
   ])).filter((row) => row.items.length > 0);
   return (
-    <main className="min-h-screen bg-[#0d1b3e] pb-12 text-white">
+    <main className="min-h-screen bg-ws-bg pb-12 text-white">
       <Navbar />
       <div className="pt-28">
         <h1 className="px-4 text-3xl font-bold sm:px-10">New &amp; Popular</h1>
-        {rows.length > 0 ? rows.map((row) => <ContentRow key={row.title} row={row} />) : <p className="px-4 pt-6 text-zinc-400 sm:px-10">Nothing new to show right now.</p>}
+        {rows.length > 0 ? rows.map((row) => <ContentRow key={row.title} row={row} />) : <p className="px-4 pt-6 text-ws-text-2 sm:px-10">Nothing new to show right now.</p>}
       </div>
       <Footer />
     </main>

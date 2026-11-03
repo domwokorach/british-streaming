@@ -52,7 +52,7 @@ export function RegisterForm() {
   }
 
   return (
-    <AuthShell title="Create account" subtitle="Start streaming in a minute." footer={<>Already have an account? <Link href="/account/sign-in" className={authLink}>Sign in</Link>.</>}>
+    <AuthShell title="Create account" subtitle="Join British Streaming and start watching in a minute." footer={<>Already have an account? <Link href="/account/sign-in" className={authLink}>Sign in</Link>.</>}>
       <FormAlert message={failure && !failure.fields ? failure.message : null} />
       <AnimatedForm method="post" onSubmit={onSubmit} noValidate className="space-y-4">
         <TextField label="Full name" name="fullName" autoComplete="name" required value={fullName} onChange={setFullName} onBlur={touch("fullName")} error={show("fullName") ?? failure?.fields?.fullName} />
@@ -62,8 +62,8 @@ export function RegisterForm() {
         </PasswordField>
         <PasswordField label="Confirm password" name="confirm" autoComplete="new-password" required value={confirm} onChange={setConfirm} onBlur={touch("confirm")} error={show("confirm")} />
         <div>
-          <label className="flex min-h-11 cursor-pointer items-start gap-2 text-sm text-zinc-100">
-            <input type="checkbox" name="terms" disabled={!hydrated} checked={terms} onChange={(e) => { setTerms(e.target.checked); touch("terms")(); }} aria-invalid={Boolean(show("terms"))} className="mt-0.5 size-5 shrink-0 accent-[#7c3aed]" />
+          <label className="flex min-h-11 cursor-pointer items-start gap-2 text-sm text-ws-text">
+            <input type="checkbox" name="terms" disabled={!hydrated} checked={terms} onChange={(e) => { setTerms(e.target.checked); touch("terms")(); }} aria-invalid={Boolean(show("terms"))} className="mt-0.5 size-5 shrink-0 accent-ws-blue" />
             <span>I agree to the <Link href="/terms" className={authLink}>Terms and Conditions</Link> and <Link href="/privacy" className={authLink}>Privacy Policy</Link>.</span>
           </label>
           {show("terms") && <p role="alert" className="mt-1 text-sm text-red-300">{show("terms")}</p>}

@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ListPlus, Play, ThumbsUp } from "lucide-react";
+import { Check, Plus, Play, ThumbsUp } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import type { ReactNode } from "react";
 
@@ -13,10 +13,11 @@ import { parseCompositeId } from "@/lib/tmdb-id";
 import type { MediaTitle } from "@/lib/types";
 import { usePlayback } from "@/providers/playback-provider";
 
-export const circleButtonClass = "size-8 rounded-full border-white/45 bg-black/25 text-white transition-transform duration-150 hover:scale-105 hover:border-white hover:bg-white hover:text-black active:scale-95";
-const circleToggleClass = "size-8 rounded-full border border-white/45 bg-black/25 text-white transition-transform duration-150 hover:scale-105 hover:border-white hover:bg-white hover:text-black active:scale-95 data-[pressed]:border-white data-[pressed]:bg-white data-[pressed]:text-black";
+export const circleButtonClass = "size-9 rounded-full border-2 border-white/50 bg-ws-elevated/60 text-white transition-[transform,border-color,background-color] duration-150 hover:scale-105 hover:border-white hover:bg-ws-elevated active:scale-95";
+const primaryCircleClass = "size-9 rounded-full border-2 border-white bg-white text-black transition-[transform,background-color] duration-150 hover:scale-105 hover:bg-white/85 active:scale-95";
+const circleToggleClass = "size-9 rounded-full border-2 border-white/50 bg-ws-elevated/60 text-white transition-[transform,border-color,background-color] duration-150 hover:scale-105 hover:border-white hover:bg-ws-elevated active:scale-95 data-[pressed]:border-white";
 
-function ActionButton({ label, children, onClick }: { label: string; children: ReactNode; onClick?: () => void }) {
+function ActionButton({ label, children, onClick, primary = false }: { label: string; children: ReactNode; onClick?: () => void; primary?: boolean }) {
   return (
     <Tooltip>
       <TooltipTrigger
@@ -25,7 +26,7 @@ function ActionButton({ label, children, onClick }: { label: string; children: R
             aria-label={label}
             size="icon"
             variant="outline"
-            className={circleButtonClass}
+            className={primary ? primaryCircleClass : circleButtonClass}
             onClick={(event: React.MouseEvent) => {
               // A card's artwork sits behind this button and opens title details on click —
               // stop the click here so Play never accidentally triggers that.
@@ -37,7 +38,7 @@ function ActionButton({ label, children, onClick }: { label: string; children: R
       >
         {children}
       </TooltipTrigger>
-      <TooltipContent className="border-white/10 bg-zinc-800 text-white">{label}</TooltipContent>
+      <TooltipContent className="border-0 bg-white text-black">{label}</TooltipContent>
     </Tooltip>
   );
 }
@@ -58,7 +59,7 @@ function ActionToggle({ label, pressedLabel, pressed, onPressedChange, children 
       >
         {children}
       </TooltipTrigger>
-      <TooltipContent className="border-white/10 bg-zinc-800 text-white">{pressedLabel}</TooltipContent>
+      <TooltipContent className="border-0 bg-white text-black">{pressedLabel}</TooltipContent>
     </Tooltip>
   );
 }
@@ -76,7 +77,7 @@ function MorphIcon({ pressed }: { pressed: boolean }) {
           transition={{ duration: 0.18, ease: "easeOut" }}
           className="absolute inset-0 flex items-center justify-center"
         >
-          {pressed ? <Check className="size-4" /> : <ListPlus className="size-4" />}
+          {pressed ? <Check className="size-4" /> : <Plus className="size-4" />}
         </motion.span>
       </AnimatePresence>
     </span>
@@ -97,7 +98,7 @@ function LikeIcon({ pressed }: { pressed: boolean }) {
 }
 
 /** Play / Add to My List / Like, plus an optional slot for a "More Info" trigger supplied by the caller (kept out of this component to avoid a modal-in-modal import cycle). */
-export function TitleActionButtons({ title, moreInfo }: { title: MediaTitle; moreInfo?: ReactNode }) {
+export function TitleActionButtons({ title, moreInfo, wide = false }: { title: MediaTitle; moreInfo?: ReactNode; wide?: boolean }) {
   const { playMedia } = usePlayback();
   const { isSaved, toggle: toggleMyList } = useMyList();
   const { isLiked, toggleLike } = useReactions();
@@ -107,8 +108,12 @@ export function TitleActionButtons({ title, moreInfo }: { title: MediaTitle; mor
 
   return (
     <div className="flex items-center justify-between">
-      <div className="flex gap-1.5">
-        <ActionButton label={`Play ${title.name}`} onClick={() => playMedia(title)}><Play className="size-4 fill-current" /></ActionButton>
+      <div className={wide ? "flex items-center gap-2" : "flex gap-1.5"}>
+        {wide ? (
+          <Button aria-label={`Play ${title.name}`} className="h-11 min-w-[118px] rounded-[4px] bg-white px-6 text-base font-semibold text-black transition-[transform,background-color] duration-150 hover:bg-white/85 active:scale-95" onClick={() => playMedia(title)}><Play className="size-5 fill-current" /> Play</Button>
+        ) : (
+          <ActionButton primary label={`Play ${title.name}`} onClick={() => playMedia(title)}><Play className="size-4 fill-current" /></ActionButton>
+        )}
         <ActionToggle
           label={`Add ${title.name} to My List`}
           pressedLabel={saved ? "Remove from My List" : "Add to My List"}

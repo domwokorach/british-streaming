@@ -16,12 +16,12 @@ export default function WatchHistoryPage() {
   const { titles, loading } = useResolvedTitles(entries ?? []);
   const busy = entries === null || loading;
   return (
-    <main className="min-h-dvh bg-[#0d1b3e] pb-12 text-white">
+    <main className="min-h-dvh bg-ws-bg pb-12 text-white">
       <Navbar />
       <div className="pt-28">
         <h1 className="px-4 text-3xl font-bold sm:px-10">Watch history</h1>
-        {busy && <div className="flex gap-3 px-4 pt-6 sm:px-10">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="aspect-video w-64 rounded bg-zinc-800" />)}</div>}
-        {!busy && titles.length === 0 && <p className="px-4 pt-6 text-zinc-400 sm:px-10">Nothing here yet. Titles you watch will appear here.</p>}
+        {busy && <div className="flex gap-3 px-4 pt-6 sm:px-10">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="aspect-video w-64 rounded bg-ws-elevated" />)}</div>}
+        {!busy && titles.length === 0 && <p className="px-4 pt-6 text-ws-text-2 sm:px-10">Nothing here yet. Titles you watch will appear here.</p>}
         {!busy && titles.length > 0 && <ContentRow row={{ title: "Recently watched", items: titles }} />}
       </div>
       <Footer />

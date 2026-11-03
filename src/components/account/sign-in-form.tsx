@@ -20,6 +20,7 @@ export function SignInForm({ next, notice }: { next?: string; notice?: string })
   const [remember, setRemember] = useState(false);
   const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
   const [pending, setPending] = useState(false);
+  const [done, setDone] = useState(false);
   const [failure, setFailure] = useState<ApiFailure | null>(null);
   const submitting = useRef(false);
   const hydrated = useHydrated();
@@ -39,6 +40,7 @@ export function SignInForm({ next, notice }: { next?: string; notice?: string })
     setFailure(null);
     const res = await api("/api/auth/sign-in", { method: "POST", body: { email, password, remember } });
     if (res.ok) {
+      setDone(true);
       await refreshUser();
       router.replace(destination);
       router.refresh();
@@ -58,7 +60,7 @@ export function SignInForm({ next, notice }: { next?: string; notice?: string })
   const notices: Record<string, string> = { expired: "Your session expired. Please sign in again.", reset: "Password updated. Sign in with your new password.", verified: "Email verified. You can sign in now." };
 
   return (
-    <AuthShell title="Sign In" footer={<>New to WorldStreaming? <Link href="/account/register" className={authLink}>Create a new account</Link>.</>}>
+    <AuthShell title="Sign In" subtitle="Welcome back to British Streaming." footer={<>New to British Streaming? <Link href="/account/register" className={authLink}>Create a new account</Link>.</>}>
       <FormAlert tone="success" message={notice && notices[notice] && notice !== "expired" ? notices[notice] : null} />
       <FormAlert tone="info" message={notice === "expired" ? notices.expired : null} />
       <FormAlert message={failure ? failure.message : null} />
@@ -68,15 +70,15 @@ export function SignInForm({ next, notice }: { next?: string; notice?: string })
         <PasswordField label="Password" name="password" autoComplete="current-password" required value={password} onChange={setPassword}
           onBlur={() => setTouched((t) => ({ ...t, password: true }))} error={passwordError ?? failure?.fields?.password} />
         <div className="flex items-center justify-between gap-3 text-sm">
-          <label className="flex min-h-11 cursor-pointer items-center gap-2 text-zinc-100">
-            <input type="checkbox" disabled={!hydrated} checked={remember} onChange={(e) => setRemember(e.target.checked)} className="size-5 accent-[#7c3aed]" /> Remember me
+          <label className="flex min-h-11 cursor-pointer items-center gap-2 text-ws-text">
+            <input type="checkbox" disabled={!hydrated} checked={remember} onChange={(e) => setRemember(e.target.checked)} className="size-5 accent-ws-blue" /> Remember me
           </label>
           <Link href="/account/forgot-password" className={authLink}>Forgot password?</Link>
         </div>
         {failure?.code === "email_not_verified" && (
           <button type="button" onClick={resend} className={`${authLink} text-sm`}>Resend verification email</button>
         )}
-        <SubmitButton pending={pending} pendingLabel="Signing in…">Sign In</SubmitButton>
+        <SubmitButton pending={pending} success={done} successLabel="Signed in" pendingLabel="Signing in…">Sign In</SubmitButton>
       </AnimatedForm>
     </AuthShell>
   );

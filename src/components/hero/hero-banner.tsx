@@ -1,12 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, CircleHelp, Pause, Play } from "lucide-react";
+import { ChevronLeft, ChevronRight, Info, Pause, Play, Volume2, VolumeX } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { TitleDetailsModal } from "@/components/title/title-details-modal";
-import { MediaMetadata } from "@/components/content/media-metadata";
+import { HoverPreview } from "@/components/content/hover-preview";
+import { useHasHover } from "@/hooks/use-has-hover";
+import { useTrailerKey } from "@/hooks/use-trailer-key";
+import { parseCompositeId } from "@/lib/tmdb-id";
+import { formatRuntime } from "@/components/content/media-metadata";
 import { useMotionProfile } from "@/hooks/use-motion-profile";
 import { EASE } from "@/lib/motion";
 import type { FeaturedTitle } from "@/lib/types";
@@ -27,6 +31,10 @@ export function HeroBanner({ slides, autoplayMs = AUTOPLAY_MS }: { slides: Featu
   const count = slides.length;
   const playing = count > 1 && !reduceMotion && !userPaused && !interacting && !tabHidden;
   const sectionRef = useRef<HTMLElement>(null);
+  const [inView, setInView] = useState(true);
+  const [muted, setMuted] = useState(true);
+  const [readyFor, setReadyFor] = useState<string | null>(null);
+  const hasHover = useHasHover();
 
   // Scroll-linked depth: the backdrop drifts and zooms slowly while the copy fades and lifts away.
   // Everything is a transform/opacity MotionValue, so scrolling never re-renders React. Zero on reduced-motion/low-power.
@@ -51,7 +59,7 @@ export function HeroBanner({ slides, autoplayMs = AUTOPLAY_MS }: { slides: Featu
     const onVisibility = () => setTabHidden(document.hidden);
     document.addEventListener("visibilitychange", onVisibility);
     const el = sectionRef.current;
-    const observer = el ? new IntersectionObserver(([entry]) => setTabHidden(document.hidden || !entry.isIntersecting), { threshold: 0.25 }) : null;
+    const observer = el ? new IntersectionObserver(([entry]) => { setTabHidden(document.hidden || !entry.isIntersecting); setInView(entry.isIntersecting); }, { threshold: 0.25 }) : null;
     if (el && observer) observer.observe(el);
     return () => {
       document.removeEventListener("visibilitychange", onVisibility);
@@ -65,6 +73,20 @@ export function HeroBanner({ slides, autoplayMs = AUTOPLAY_MS }: { slides: Featu
   };
 
   const { title, description } = slides[index];
+  const parsed = parseCompositeId(title.id);
+  // Muted preview only on pointer devices, never with reduced motion or Save-Data, and only while the hero is on screen.
+  const saveData = typeof navigator !== "undefined" && Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData);
+  const previewAllowed = hasHover && !reduceMotion && !saveData && inView && !tabHidden;
+  const trailerKey = useTrailerKey(parsed?.mediaType ?? null, parsed?.tmdbId ?? null, previewAllowed);
+  // Hold the still poster for a moment so the video never competes with first paint.
+  useEffect(() => {
+    if (!previewAllowed) return;
+    const timer = window.setTimeout(() => setReadyFor(title.id), 1800);
+    return () => window.clearTimeout(timer);
+  }, [title.id, previewAllowed]);
+  const trailerReady = previewAllowed && readyFor === title.id;
+  const meta = [title.kind === "series" ? "Series" : "Film", title.genres[0], title.year ? String(title.year) : null, title.kind === "movie" && title.runtimeMinutes ? formatRuntime(title.runtimeMinutes) : title.seasons ? `${title.seasons} Season${title.seasons === 1 ? "" : "s"}` : null].filter(Boolean) as string[];
+  const isNew = title.year === new Date().getFullYear();
 
   return (
     <section
@@ -78,9 +100,9 @@ export function HeroBanner({ slides, autoplayMs = AUTOPLAY_MS }: { slides: Featu
       onBlurCapture={() => setInteracting(false)}
       onTouchStart={() => setInteracting(true)}
       onTouchEnd={() => setInteracting(false)}
-      className="px-4 pt-[calc(78px+env(safe-area-inset-top))] sm:px-8"
+      className="px-0 pt-[calc(64px+env(safe-area-inset-top))] sm:px-[58px] sm:pt-[calc(72px+env(safe-area-inset-top))]"
     >
-      <div className="relative h-[68vh] min-h-[480px] max-h-[640px] overflow-hidden rounded-xl">
+      <div className="relative h-[64vh] min-h-[440px] max-h-[700px] overflow-hidden bg-ws-bg sm:rounded-[24px]">
         <AnimatePresence initial={false} mode="popLayout">
           <motion.div
             key={title.id}
@@ -105,26 +127,45 @@ export function HeroBanner({ slides, autoplayMs = AUTOPLAY_MS }: { slides: Featu
               <Image src={title.backdropUrl} alt="" fill priority={index === 0} sizes="(min-width: 1920px) 1840px, 100vw" draggable={false} className="object-cover object-[65%_center] md:object-[58%_center]" />
               </motion.div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0d1b3e] via-[#0d1b3e]/60 via-40% to-transparent md:bg-gradient-to-r md:from-[#0d1b3e] md:via-[#0d1b3e]/70 md:via-35% md:to-transparent md:to-70%" />
-            <motion.div style={{ opacity: copyOpacity, y: copyY }} className="absolute inset-x-5 bottom-14 z-10 flex flex-col justify-end sm:inset-x-auto sm:inset-y-0 sm:left-12 sm:max-w-md sm:justify-center sm:pb-6">
-              <p className="mb-2 text-base font-semibold text-[#a78bfa] sm:text-lg">
-                {title.kind === "series" ? "New series - stream it now" : "Featured film - stream it now"}
+            {trailerReady && trailerKey && (
+              <div className="absolute inset-0 hidden md:block">
+                <HoverPreview trailerKey={trailerKey} title={title.name} muted={muted} />
+              </div>
+            )}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ws-bg via-ws-bg/40 via-30% to-transparent md:bg-gradient-to-r md:from-ws-bg/95 md:via-ws-bg/50 md:via-40% md:to-transparent md:to-70%" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_70%_at_0%_100%,rgba(124,58,237,0.22),transparent_70%),radial-gradient(40%_50%_at_100%_0%,rgba(37,99,235,0.14),transparent_70%)]" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-ws-bg to-transparent" />
+            <motion.div style={{ opacity: copyOpacity, y: copyY }} className="absolute inset-x-5 bottom-12 z-10 flex flex-col justify-end sm:inset-x-auto sm:bottom-14 sm:left-10 sm:max-w-[640px]">
+              {title.logoUrl ? (
+                <div className="relative mb-4 h-20 w-3/4 max-w-[520px] sm:h-32"><Image src={title.logoUrl} alt={title.name} fill sizes="520px" className="object-contain object-left-bottom drop-shadow-lg" /></div>
+              ) : (
+                <h1 className="mb-3 text-balance text-4xl font-black uppercase leading-[0.95] tracking-[-0.03em] text-white drop-shadow-lg sm:text-6xl lg:text-7xl">{title.name}</h1>
+              )}
+              <p className="mb-3 flex flex-wrap items-center gap-x-2 text-sm font-semibold text-white">
+                {meta.map((part, i) => <span key={part} className="flex items-center gap-2">{i > 0 && <span aria-hidden className="text-ws-text-2">•</span>}{part}</span>)}
+                {title.certification && <span className="ml-1 rounded-full bg-ws-purple-electric px-2 py-px text-[11px] font-bold">{title.certification}</span>}
               </p>
-              <h1 className="mb-3 text-balance text-3xl leading-[0.98] font-extrabold tracking-tight text-white drop-shadow-lg sm:text-5xl lg:text-6xl">{title.name}</h1>
-              <p className="mb-4 line-clamp-3 max-w-md text-sm leading-6 text-white sm:line-clamp-4 sm:text-[15px]">{description}</p>
-              <div className="mb-5 sm:mb-6"><MediaMetadata title={title} /></div>
-              <div className="flex gap-2">
-                <Button onClick={() => playMedia(title)} size="lg" className="h-11 flex-1 rounded-[4px] bg-[#7c3aed] px-6 font-bold uppercase tracking-wider text-white transition-transform duration-150 hover:scale-[1.02] hover:bg-[#7c3aed]/85 active:scale-[0.97] sm:flex-none">
+              <p className="mb-5 line-clamp-3 max-w-[620px] text-sm leading-6 text-white sm:text-lg sm:leading-7">{description}</p>
+              <div className="flex gap-3">
+                <Button onClick={() => playMedia(title)} size="lg" className="h-12 min-w-[108px] rounded-full bg-white px-6 text-base font-semibold text-black transition-[transform,background-color] duration-150 hover:bg-white/85 active:scale-[0.97]">
                   <Play className="size-5 fill-current" /> Play
                 </Button>
                 <TitleDetailsModal
                   title={title}
-                  renderTrigger={<Button size="lg" className="h-11 flex-1 rounded-[4px] border border-white/70 bg-transparent px-5 font-bold uppercase tracking-wider text-white transition-transform duration-150 hover:scale-[1.02] hover:bg-white/10 active:scale-[0.97] sm:flex-none" />}
+                  renderTrigger={<Button size="lg" className="h-12 rounded-full bg-ws-elevated/90 px-6 text-base font-semibold text-white transition-[transform,background-color] duration-150 hover:bg-ws-elevated active:scale-[0.97]" />}
                 >
-                  <CircleHelp className="size-5" /> More Info
+                  <Info className="size-5" /> More Info
                 </TitleDetailsModal>
               </div>
             </motion.div>
+            <div className="absolute bottom-14 right-0 z-10 flex items-center gap-3">
+              {trailerReady && trailerKey && (
+                <button type="button" aria-label={muted ? "Unmute preview" : "Mute preview"} aria-pressed={!muted} onClick={() => setMuted((m) => !m)} className="hidden size-11 items-center justify-center rounded-full border border-white/60 bg-black/40 text-white transition-colors hover:border-white hover:bg-white/10 md:flex">
+                  {muted ? <VolumeX className="size-5" aria-hidden /> : <Volume2 className="size-5" aria-hidden />}
+                </button>
+              )}
+              {isNew && <span className="hidden h-8 sm:flex items-center border-l-[3px] border-ws-purple-electric bg-ws-bg/70 pl-3 pr-5 text-sm font-semibold text-white">Recently added</span>}
+            </div>
           </motion.div>
         </AnimatePresence>
 

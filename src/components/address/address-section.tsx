@@ -53,14 +53,14 @@ export function AddressSection({ userId }: { userId: string }) {
         <form onSubmit={save} noValidate className="space-y-4 rounded-lg border border-white/10 p-4 sm:p-5">
           <AddressInput value={draft} onChange={setDraft} showAllErrors={submitted} />
           <div className="flex flex-wrap gap-3">
-            <Button type="submit" className="h-11 bg-[#7c3aed] px-6 font-semibold text-white hover:bg-[#7c3aed]/85">Save address</Button>
+            <Button type="submit" className="h-11 bg-ws-blue px-6 font-semibold text-white hover:bg-ws-blue/85">Save address</Button>
             <Button type="button" variant="outline" onClick={() => setEditing(false)} className="h-11 border-white/20 text-white hover:bg-white/10">Cancel</Button>
           </div>
         </form>
       ) : saved && !isAddressEmpty(saved) ? (
         <AddressDisplay address={saved} showMapPreview />
       ) : (
-        <p className="rounded-lg border border-dashed border-white/15 p-4 text-sm text-zinc-400">No address saved yet.</p>
+        <p className="rounded-lg border border-dashed border-white/15 p-4 text-sm text-ws-text-2">No address saved yet.</p>
       )}
     </section>
   );

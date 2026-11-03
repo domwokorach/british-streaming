@@ -2,7 +2,7 @@
 
 import { Pause, Play } from "lucide-react";
 import { useInView } from "motion/react";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Reveal } from "@/components/motion/reveal";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { useCarouselAutoplay } from "@/hooks/use-carousel-autoplay";
@@ -24,6 +24,13 @@ interface ContentRowProps {
 
 const MIN_ITEMS_TO_LOOP = 8;
 
+/** Row gutter shared with the header so headings, first cards and the logo line up. */
+const GUTTER = "px-4 sm:px-[58px]";
+/** Landscape cards per viewport: 2 / 3 / 4 / 5 / 6 across <480, 480, 768, 1024 and 1280px, 7 on ultrawide. */
+const BASIS_STANDARD = "basis-1/2 min-[480px]:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6 min-[1920px]:basis-[14.2857%]";
+/** Top 10 cells hold a numeral plus a poster, so they run one step wider. */
+const BASIS_TOP_TEN = "basis-[70%] min-[480px]:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 min-[1920px]:basis-1/6";
+
 export function ContentRow({ row, onRemove, autoplayMs, loop = false }: ContentRowProps) {
   const isTopTen = row.variant === "top-ten";
   const sectionRef = useRef<HTMLElement>(null);
@@ -32,15 +39,20 @@ export function ContentRow({ row, onRemove, autoplayMs, loop = false }: ContentR
   const [engaged, setEngaged] = useState(false); // pointer/focus/touch inside the row
   const tier = useMotionTier();
   const inView = useInView(sectionRef, { amount: 0.3 });
-  const canLoop = loop && row.items.length >= MIN_ITEMS_TO_LOOP;
-  const autoplayOn = Boolean(autoplayMs) && tier !== "none" && row.items.length > 1;
+  // Stable keys need unique ids; a repeated title from the API would otherwise render twice and warn.
+  const items = useMemo(() => { const seen = new Set<string>(); const unique = row.items.filter((t) => !seen.has(t.id) && Boolean(seen.add(t.id))); return isTopTen ? unique.slice(0, 10) : unique; }, [row.items, isTopTen]);
+  const canLoop = loop && items.length >= MIN_ITEMS_TO_LOOP;
+  const autoplayOn = Boolean(autoplayMs) && tier !== "none" && items.length > 1;
 
   useCarouselAutoplay({ api, intervalMs: autoplayOn ? autoplayMs : undefined, paused: userPaused || engaged || !inView });
+
+  if (items.length === 0) return null;
 
   return (
     <section
       ref={sectionRef}
-      className="group/rail relative z-0 mt-8 first:mt-0 hover:z-30 focus-within:z-30 sm:mt-12"
+      aria-label={row.title}
+      className="group/rail relative z-0 mt-6 first:mt-0 sm:mt-8"
       onMouseEnter={() => setEngaged(true)}
       onMouseLeave={() => setEngaged(false)}
       onFocusCapture={() => setEngaged(true)}
@@ -48,32 +60,31 @@ export function ContentRow({ row, onRemove, autoplayMs, loop = false }: ContentR
       onTouchStart={() => setEngaged(true)}
       onTouchEnd={() => setEngaged(false)}
     >
-      <Reveal effect="slide" distance={20} duration={0.5} className="mb-4 flex items-center justify-between gap-3 px-4 sm:px-8">
-        <h2 className="text-xl font-semibold text-white sm:text-2xl">{row.title}</h2>
-        <span className="flex items-center gap-3">
-          {autoplayOn && (
-            <button type="button" onClick={() => setUserPaused((p) => !p)} aria-pressed={userPaused} aria-label={userPaused ? `Resume automatic sliding of ${row.title}` : `Pause automatic sliding of ${row.title}`}
-              className="flex size-9 items-center justify-center rounded-full text-zinc-300 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-[#a78bfa]">
-              {userPaused ? <Play className="size-4 fill-current" aria-hidden /> : <Pause className="size-4 fill-current" aria-hidden />}
-            </button>
-          )}
-          <span className="text-base font-medium text-[#a78bfa]">View All</span>
-        </span>
+      <Reveal effect="slide" distance={12} duration={0.4} className={`mb-2 flex items-center justify-between gap-3 ${GUTTER}`}>
+        <h2 className="text-lg font-medium text-white sm:text-[22px] sm:leading-7">{row.title}</h2>
+        {autoplayOn && (
+          <button type="button" onClick={() => setUserPaused((p) => !p)} aria-pressed={userPaused} aria-label={userPaused ? `Resume automatic sliding of ${row.title}` : `Pause automatic sliding of ${row.title}`}
+            className="flex size-11 items-center justify-center rounded-full text-ws-text-2 transition-colors hover:bg-white/10 hover:text-white">
+            {userPaused ? <Play className="size-4 fill-current" aria-hidden /> : <Pause className="size-4 fill-current" aria-hidden />}
+          </button>
+        )}
       </Reveal>
       {/* Snapping, group-wise paging; `duration` shapes Embla's settle into a soft, spring-like glide. */}
-      <Carousel opts={{ align: "start", slidesToScroll: "auto", containScroll: "trimSnaps", dragFree: false, loop: canLoop, duration: 28 }} setApi={setApi} aria-label={`${row.title} carousel`} className="px-4 sm:px-8">
-        <CarouselContent className="-ml-2 sm:-ml-3">
-          {row.items.map((title, index) => (
-            <CarouselItem key={`${row.title}-${title.id}`} className={`pl-2 sm:pl-3 ${isTopTen ? "basis-[65%] sm:basis-[31%] lg:basis-[23%]" : "basis-[42%] sm:basis-[28%] lg:basis-[16.6%]"}`}>
+      <Carousel opts={{ align: "start", slidesToScroll: "auto", containScroll: "trimSnaps", dragFree: false, loop: canLoop, duration: 28 }} setApi={setApi} aria-label={`${row.title} carousel`}>
+        <CarouselContent className="ml-0 pl-4 sm:pl-[58px]">
+          {items.map((title, index) => (
+            <CarouselItem key={`${row.title}-${title.id}`} className={`pl-0 pr-1 sm:pr-2 ${isTopTen ? BASIS_TOP_TEN : BASIS_STANDARD}`}>
               {/* Cards fade-and-scale in with a short stagger; the delay is capped so far-right cards never wait long. */}
-              <Reveal effect="zoom-in" duration={0.45} delay={Math.min(index, 6) * 0.05} amount={0.1}>
+              <Reveal effect="fade" duration={0.4} delay={Math.min(index, 6) * 0.04} amount={0.1}>
               {isTopTen ? <TopTenCard title={title} rank={index + 1} /> : row.variant === "continue-watching" ? <ContinueWatchingCard title={title} onRemove={onRemove} /> : <MediaCard title={title} />}
               </Reveal>
             </CarouselItem>
           ))}
+          {/* Right padding on an overflowing flex container collapses, so Embla would end the row flush with the edge (clipping the last card). A zero-content end slice carries the gutter instead. */}
+          <div aria-hidden className={`pointer-events-none shrink-0 grow-0 ${canLoop ? "hidden" : "basis-4 sm:basis-[58px]"}`} />
         </CarouselContent>
-        <CarouselPrevious className="left-2 z-30 hidden h-12 w-12 rounded-full border-0 bg-transparent text-white opacity-0 transition-[opacity,transform] duration-200 ease-out hover:scale-105 hover:bg-white/10 disabled:hidden sm:flex group-hover/rail:opacity-100 focus-visible:opacity-100" />
-        <CarouselNext className="right-2 z-30 hidden h-12 w-12 rounded-full border-0 bg-transparent text-white opacity-0 transition-[opacity,transform] duration-200 ease-out hover:scale-105 hover:bg-white/10 disabled:hidden sm:flex group-hover/rail:opacity-100 focus-visible:opacity-100" />
+        <CarouselPrevious aria-label="Scroll left" className="left-0 top-0 z-20 hidden h-full w-[50px] rounded-none border-0 bg-black/50 p-0 text-white opacity-0 transition-opacity duration-200 hover:bg-black/70 disabled:hidden sm:flex group-hover/rail:opacity-100 focus-visible:opacity-100 motion-reduce:transition-none [&_svg]:size-8" />
+        <CarouselNext aria-label="Scroll right" className="right-0 top-0 z-20 hidden h-full w-[50px] rounded-none border-0 bg-black/50 p-0 text-white opacity-0 transition-opacity duration-200 hover:bg-black/70 disabled:hidden sm:flex group-hover/rail:opacity-100 focus-visible:opacity-100 motion-reduce:transition-none [&_svg]:size-8" />
       </Carousel>
     </section>
   );

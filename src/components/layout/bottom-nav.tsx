@@ -1,34 +1,42 @@
 "use client";
 
-import { Bookmark, Clapperboard, Flame, House, Tv } from "lucide-react";
-import Link from "next/link";
+import { Bookmark, Clapperboard, Film, Flame, House, Languages } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { BOTTOM_NAV_ITEMS } from "@/lib/constants";
+import { useEffect, useState } from "react";
+import { FloatingDock, type DockItem } from "@/components/ui/floating-dock";
 import { cn } from "cn";
 
-const ICONS = { home: House, tv: Tv, film: Clapperboard, flame: Flame, bookmark: Bookmark } as const;
+const DESTINATIONS = [
+  { title: "Home", href: "/", icon: <House /> },
+  { title: "Series", href: "/series", icon: <Clapperboard /> },
+  { title: "Films", href: "/films", icon: <Film /> },
+  { title: "New & Popular", href: "/new-popular", icon: <Flame /> },
+  { title: "My List", href: "/my-list", icon: <Bookmark /> },
+  { title: "Browse by Language", href: "/browse/languages", icon: <Languages /> },
+];
 
-/** Thumb-reach tab bar for phones; hidden from `md` up where the top nav takes over. */
+/** Past this scroll depth the desktop header may have slid away, so the dock steps in to keep navigation within reach. */
+const DESKTOP_REVEAL_PX = 480;
+
+/**
+ * Floating dock navigation. Phones and tablets (below `lg`) get it permanently, replacing the old tab bar; on desktop,
+ * where the sticky header already carries the same links, it only appears after scrolling so the two never compete.
+ */
 export function BottomNav() {
   const pathname = usePathname();
-  // The auth screens are full-bleed and don't need app navigation.
+  const [deep, setDeep] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setDeep(window.scrollY > DESKTOP_REVEAL_PX);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  // Auth screens are full-bleed; the dock would sit over the form.
   if (/^\/account\/(sign-|register|forgot-password|reset-password|verify-email|session-refresh)/.test(pathname)) return null;
+  const items: DockItem[] = DESTINATIONS.map((d) => ({ ...d, active: d.href === "/" ? pathname === "/" : pathname.startsWith(d.href) }));
   return (
-    <nav aria-label="Primary" className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#0d1b3e]/90 pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] backdrop-blur-xl md:hidden">
-      <ul className="flex h-14 items-stretch">
-        {BOTTOM_NAV_ITEMS.map((item) => {
-          const Icon = ICONS[item.icon];
-          const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-          return (
-            <li key={item.href} className="flex-1">
-              <Link href={item.href} aria-current={active ? "page" : undefined} className={cn("flex h-full flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors active:scale-95", active ? "text-[#a78bfa]" : "text-zinc-400 hover:text-white")}>
-                <Icon className="size-5" aria-hidden />
-                {item.label}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+    <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] transition-[opacity,transform] duration-300 motion-reduce:transition-none", deep ? "" : "lg:invisible lg:translate-y-6 lg:opacity-0")}>
+      <FloatingDock items={items} label="Quick navigation" className="pointer-events-auto max-w-full" />
+    </div>
   );
 }

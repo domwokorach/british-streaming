@@ -28,7 +28,7 @@ interface Settings {
 
 const DEFAULTS: Settings = { effect: "slide", direction: "up", duration: 0.7, delay: 0, easing: "out", amount: 0.3, repeat: false, intensity: 1, speed: 1, stiffness: 180, damping: 22, mass: 1, reducedMotion: false };
 
-const CARD = "flex h-40 items-center justify-center rounded-xl bg-gradient-to-br from-[#7c3aed] to-[#1f3170] text-lg font-semibold text-white shadow-lg";
+const CARD = "flex h-40 items-center justify-center rounded-xl bg-gradient-to-br from-[#e50914] to-[#333333] text-lg font-semibold text-white shadow-lg";
 
 export function ScrollLab() {
   const [s, setS] = useState<Settings>(DEFAULTS);
@@ -43,10 +43,10 @@ export function ScrollLab() {
   const reveal = { effect: s.effect, direction: s.direction, duration: s.duration, delay: s.delay, easing: s.easing, amount: s.amount, once: !s.repeat, speed: s.speed };
 
   return (
-    <main className="min-h-dvh bg-[#0d1b3e] pb-16 text-white">
+    <main className="min-h-dvh bg-[#141414] pb-16 text-white">
       <Navbar />
       <div className="mx-auto grid max-w-7xl gap-6 px-4 pt-24 sm:px-8 lg:grid-cols-[22rem_1fr]">
-        <aside aria-label="Animation controls" className="space-y-4 rounded-xl border border-white/10 bg-[#16275a]/60 p-4 lg:sticky lg:top-24 lg:self-start">
+        <aside aria-label="Animation controls" className="space-y-4 rounded-xl border border-white/10 bg-[#181818]/60 p-4 lg:sticky lg:top-24 lg:self-start">
           <h1 className="text-xl font-bold">Scroll animation lab</h1>
           <Select label="Animation type" value={s.effect} options={REVEAL_EFFECTS} onChange={set("effect")} />
           <Select label="Direction (slide)" value={s.direction} options={DIRECTIONS} onChange={set("direction")} disabled={s.effect !== "slide"} />
@@ -62,7 +62,7 @@ export function ScrollLab() {
           <Toggle label="Repeat on every scroll" checked={s.repeat} onChange={set("repeat")} />
           <Toggle label="Reduced-motion preview" checked={s.reducedMotion} onChange={set("reducedMotion")} />
           <div className="flex gap-2">
-            <button type="button" onClick={replay} className="flex h-10 flex-1 items-center justify-center gap-2 rounded-md bg-[#7c3aed] text-sm font-semibold"><Play className="size-4" aria-hidden /> Play</button>
+            <button type="button" onClick={replay} className="flex h-10 flex-1 items-center justify-center gap-2 rounded-md bg-[#e50914] text-sm font-semibold"><Play className="size-4" aria-hidden /> Play</button>
             <button type="button" onClick={() => setPaused((p) => !p)} aria-pressed={paused} className="flex h-10 flex-1 items-center justify-center gap-2 rounded-md border border-white/25 text-sm font-semibold"><Pause className="size-4" aria-hidden /> {paused ? "Resume" : "Pause"}</button>
             <button type="button" onClick={reset} className="flex h-10 flex-1 items-center justify-center gap-2 rounded-md border border-white/25 text-sm font-semibold"><RotateCcw className="size-4" aria-hidden /> Reset</button>
           </div>
@@ -78,8 +78,8 @@ export function ScrollLab() {
             <RevealGroup className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {Array.from({ length: 8 }, (_, i) => <RevealItem key={i} effect={s.effect === "slide" ? "slide" : s.effect} direction={s.direction} easing={s.easing} speed={s.speed} className={`${CARD} h-28`}>{i + 1}</RevealItem>)}
             </RevealGroup>
-            <ImageReveal className="h-56 rounded-xl"><div className="h-full w-full bg-[radial-gradient(circle_at_30%_30%,#a78bfa,#1f3170_60%,#0a1331)]" /></ImageReveal>
-            <div className="h-72 overflow-hidden rounded-xl"><ParallaxLayer offset={80} scaleTo={1.15} intensity={s.intensity} className="h-[130%] -mt-[15%]"><div className="h-full w-full bg-[linear-gradient(135deg,#7c3aed,#16275a_50%,#0a1331)]" /></ParallaxLayer></div>
+            <ImageReveal className="h-56 rounded-xl"><div className="h-full w-full bg-[radial-gradient(circle_at_30%_30%,#ffffff,#333333_60%,#181818)]" /></ImageReveal>
+            <div className="h-72 overflow-hidden rounded-xl"><ParallaxLayer offset={80} scaleTo={1.15} intensity={s.intensity} className="h-[130%] -mt-[15%]"><div className="h-full w-full bg-[linear-gradient(135deg,#e50914,#181818_50%,#181818)]" /></ParallaxLayer></div>
             <div className="text-center"><p className="text-sm text-zinc-400">Scroll-triggered counter</p><Counter to={1280450} className="text-gradient-animated text-5xl font-extrabold" /></div>
             <Reveal {...reveal} className={CARD}>Reveal · {s.effect}</Reveal>
             <div className="h-24" />
@@ -107,7 +107,7 @@ function Range({ label, unit, min, max, step, value, onChange }: { label: string
   return (
     <div>
       <label htmlFor={id} className="mb-1 flex justify-between text-sm font-medium text-zinc-200"><span>{label}</span><span className="tabular-nums text-zinc-400">{value}{unit}</span></label>
-      <input id={id} type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} className="h-6 w-full accent-[#7c3aed]" />
+      <input id={id} type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} className="h-6 w-full accent-[#e50914]" />
     </div>
   );
 }
@@ -116,7 +116,7 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
   return (
     <label className="flex min-h-10 cursor-pointer items-center justify-between gap-3 text-sm font-medium text-zinc-200">
       {label}
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="size-5 accent-[#7c3aed]" />
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="size-5 accent-[#e50914]" />
     </label>
   );
 }
@@ -130,11 +130,11 @@ function SpringPreview({ stiffness, damping, mass }: { stiffness: number; dampin
     <section aria-label="Spring preview" className="rounded-xl border border-white/10 p-4">
       <div className="mb-3 flex items-center justify-between gap-3 text-sm">
         <span className="text-zinc-300">Spring · <strong data-testid="spring-feel" className="text-white">{feel}</strong> <span className="text-zinc-500">(ζ = {zeta.toFixed(2)})</span></span>
-        <button type="button" onClick={() => setRight((r) => !r)} className="h-9 rounded-md bg-[#7c3aed] px-3 text-sm font-semibold">Toggle</button>
+        <button type="button" onClick={() => setRight((r) => !r)} className="h-9 rounded-md bg-[#e50914] px-3 text-sm font-semibold">Toggle</button>
       </div>
       <div className="relative h-14 rounded-lg bg-black/30">
         <motion.div data-testid="spring-ball" animate={{ x: right ? 200 : 0 }} transition={{ type: "spring", stiffness, damping, mass }}
-          className="absolute top-2 left-2 size-10 rounded-full bg-[#a78bfa] shadow-lg" />
+          className="absolute top-2 left-2 size-10 rounded-full bg-[#ffffff] shadow-lg" />
       </div>
     </section>
   );

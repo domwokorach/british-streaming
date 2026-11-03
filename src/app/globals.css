@@ -5,9 +5,24 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-ws-bg: var(--ws-bg);
+  --color-ws-card: var(--ws-card);
+  --color-ws-elevated: var(--ws-elevated);
+  --color-ws-border: var(--ws-border);
+  --color-ws-text: var(--ws-text);
+  --color-ws-text-2: var(--ws-text-2);
+  --color-ws-muted: var(--ws-muted);
+  --color-ws-blue: var(--ws-blue);
+  --color-ws-blue-bright: var(--ws-blue-bright);
+  --color-ws-blue-light: var(--ws-blue-light);
+  --color-ws-navy: var(--ws-navy);
+  --color-ws-purple: var(--ws-purple);
+  --color-ws-purple-electric: var(--ws-purple-electric);
+  --color-ws-lavender: var(--ws-lavender);
+  --color-ws-purple-deep: var(--ws-purple-deep);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Netflix Sans", "Helvetica Neue", Helvetica, Arial, "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
   --font-heading: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
   --color-brand-accent: var(--brand-accent);
@@ -49,9 +64,50 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --animate-shine: shine var(--duration) infinite linear;
+  --animate-scroll: scroll var(--animation-duration, 45s) linear infinite var(--animation-direction, forwards);
+  @keyframes scroll {
+    to { transform: translate(calc(-50% - 0.375rem)); }
+  }
+  @keyframes shine {
+  0% {
+    background-position: 0% 0%;
+    }
+  50% {
+    background-position: 100% 100%;
+    }
+  to {
+    background-position: 0% 0%;
+    }
+  }
 }
 
 :root {
+  --ws-bg: #101116;
+  --ws-card: #1E1E2E;
+  --ws-elevated: #272735;
+  --ws-border: #374151;
+  --ws-text: #F8FAFC;
+  --ws-text-2: #A1A1AA;
+  --ws-muted: #64748B;
+  --ws-blue: #2563EB;
+  --ws-blue-bright: #3B82F6;
+  --ws-blue-light: #60A5FA;
+  --ws-navy: #1E3A8A;
+  --ws-purple: #7C3AED;
+  --ws-purple-electric: #8B5CF6;
+  --ws-lavender: #A78BFA;
+  --ws-purple-deep: #4C1D95;
+  --z-carousel: 0;
+  --z-row-hover: 30;
+  --z-preview: 35;
+  --z-header: 40;
+  --z-backdrop: 80;
+  --z-modal: 90;
+  --z-notification: 100;
+  --brand-accent: var(--ws-blue);
+  --brand-navy: var(--ws-bg);
+  --brand-surface: var(--ws-card);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
@@ -74,9 +130,6 @@
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   --radius: 0.375rem;
-  --brand-accent: #7c3aed;
-  --brand-navy: #0d1b3e;
-  --brand-surface: #16275a;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -90,27 +143,24 @@
 }
 
 .dark {
-  --brand-accent: #7c3aed;
-  --brand-navy: #0d1b3e;
-  --brand-surface: #16275a;
-  --background: #0d1b3e;
-  --foreground: oklch(0.985 0 0);
-  --card: #16275a;
+  --background: var(--ws-bg);
+  --foreground: var(--ws-text);
+  --card: var(--ws-card);
   --card-foreground: oklch(0.985 0 0);
-  --popover: #16275a;
+  --popover: var(--ws-card);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: #7c3aed;
+  --primary: var(--ws-blue);
   --primary-foreground: #ffffff;
-  --secondary: #1f3170;
+  --secondary: var(--ws-elevated);
   --secondary-foreground: oklch(0.985 0 0);
-  --muted: #1f3170;
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: #1f3170;
+  --muted: var(--ws-elevated);
+  --muted-foreground: var(--ws-text-2);
+  --accent: var(--ws-elevated);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --border: var(--ws-border);
+  --input: var(--ws-border);
+  --ring: var(--ws-blue-bright);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -139,18 +189,18 @@
 
   body {
     min-width: 320px;
-    background: #0d1b3e;
+    background: var(--ws-bg);
     overflow-x: clip;
   }
   /* Slim, themed scrollbars (WebKit + Firefox). */
   * {
     scrollbar-width: thin;
-    scrollbar-color: #3b2a7a transparent;
+    scrollbar-color: var(--ws-border) transparent;
   }
   ::-webkit-scrollbar { width: 10px; height: 10px; }
-  ::-webkit-scrollbar-thumb { background: #3b2a7a; border-radius: 9999px; border: 2px solid #0d1b3e; }
-  ::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
-  :focus-visible { outline: 2px solid #a78bfa; outline-offset: 2px; }
+  ::-webkit-scrollbar-thumb { background: var(--ws-border); border-radius: 9999px; border: 2px solid var(--ws-bg); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--ws-purple); }
+  :focus-visible { outline: 2px solid var(--ws-blue-light); outline-offset: 2px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -164,9 +214,9 @@
   }
 }
 
-@media (max-width: 767px) {
-  /* Reserve room for the fixed tab bar only on pages that render it. */
-  body:has(nav[aria-label="Primary"]) { padding-bottom: calc(3.5rem + env(safe-area-inset-bottom)); }
+@media (max-width: 1023px) {
+  /* Reserve room for the floating dock only on pages that render it (it is permanent below `lg`). */
+  body:has(nav[aria-label="Quick navigation"]) { padding-bottom: calc(4.75rem + env(safe-area-inset-bottom)); }
 }
 
 @keyframes hero-progress {
@@ -197,7 +247,7 @@ html { scroll-padding-top: 6.5rem; overscroll-behavior-y: none; }
 /* Animated gradient headline text. */
 @keyframes gradient-pan { to { background-position: 200% 50%; } }
 .text-gradient-animated {
-  background-image: linear-gradient(90deg, #a78bfa, #60a5fa, #c4b5fd, #a78bfa);
+  background-image: linear-gradient(90deg, #ffffff, #60a5fa, #c4b5fd, #ffffff);
   background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -205,3 +255,11 @@ html { scroll-padding-top: 6.5rem; overscroll-behavior-y: none; }
   animation: gradient-pan 6s linear infinite;
 }
 @media (prefers-reduced-motion: reduce) { .text-gradient-animated { animation: none; } }
+
+/* Error pages: a single short chromatic glitch on the numerals when hovered or focused. Skipped entirely under reduced motion. */
+@keyframes glitch-a { 0% { transform: translate(0); } 30% { transform: translate(-4px, 1px); } 60% { transform: translate(3px, -1px); } 100% { transform: translate(0); opacity: 0; } }
+@keyframes glitch-b { 0% { transform: translate(0); } 30% { transform: translate(4px, -1px); } 60% { transform: translate(-3px, 1px); } 100% { transform: translate(0); opacity: 0; } }
+@media (prefers-reduced-motion: no-preference) {
+  .glitch:is(:hover, :focus-within) .glitch-a { display: block; animation: glitch-a 0.3s steps(3, end) 1 forwards; }
+  .glitch:is(:hover, :focus-within) .glitch-b { display: block; animation: glitch-b 0.3s steps(3, end) 1 forwards; }
+}

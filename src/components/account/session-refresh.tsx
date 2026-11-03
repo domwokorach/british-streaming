@@ -18,5 +18,5 @@ export function SessionRefresh({ next }: { next?: string }) {
       window.location.replace(ok ? dest : `/account/sign-in?notice=expired&next=${encodeURIComponent(dest)}`);
     });
   }, [next]);
-  return <main className="flex min-h-dvh items-center justify-center bg-[#0d1b3e]"><Spinner className="size-8 text-[#a78bfa]" /></main>;
+  return <main className="flex min-h-dvh items-center justify-center bg-ws-bg"><Spinner className="size-8 text-ws-lavender" /></main>;
 }

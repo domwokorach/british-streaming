@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Figtree, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { BRAND } from "@/lib/brand";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { ScrollProgress } from "@/components/motion/scroll-progress";
 import { ScrollToTop } from "@/components/motion/scroll-to-top";
@@ -22,15 +23,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "WorldStreaming — Stream Films, Series and Live TV",
-  description: "A cinematic streaming experience.",
+  title: `${BRAND.name} — ${BRAND.tagline}`,
+  description: BRAND.description,
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#0d1b3e",
+  themeColor: BRAND.themeColor,
   colorScheme: "dark",
 };
 
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`dark ${brandSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col"><MotionProvider><AuthProvider><PlaybackProvider>{children}<BottomNav /><ScrollProgress /><ScrollToTop /><WebVitalsReporter /></PlaybackProvider></AuthProvider><Toaster theme="dark" /></MotionProvider></body>

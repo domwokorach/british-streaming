@@ -22,10 +22,10 @@ export function MediaMetadata({ title, compact = false }: { title: MediaTitle; c
     if (durationLabel) parts.push(<span key="dur">{durationLabel}</span>);
     if (parts.length === 0) return null;
     return (
-      <p className="flex flex-wrap items-center gap-1.5 text-xs text-zinc-300">
+      <p className="flex flex-wrap items-center gap-1.5 text-xs text-ws-text">
         {parts.map((part, index) => (
           <span key={index} className="flex items-center gap-1.5">
-            {index > 0 && <span aria-hidden className="text-zinc-500">•</span>}
+            {index > 0 && <span aria-hidden className="text-ws-text-2">•</span>}
             {part}
           </span>
         ))}
@@ -34,10 +34,10 @@ export function MediaMetadata({ title, compact = false }: { title: MediaTitle; c
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium text-zinc-100">
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium text-ws-text">
       {title.match !== null && <span className="font-semibold text-[#46d369]">{title.match}% Match</span>}
       {title.year && <span>{title.year}</span>}
-      {title.certification && <Badge className="rounded-sm border border-zinc-500 bg-transparent px-1 py-0 text-[9px] font-normal text-zinc-200">{title.certification}</Badge>}
+      {title.certification && <Badge className="rounded-sm border border-ws-border bg-transparent px-1 py-0 text-[9px] font-normal text-ws-text">{title.certification}</Badge>}
       {durationLabel && <span>{durationLabel}</span>}
     </div>
   );

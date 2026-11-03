@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { RegisterForm } from "@/components/account/register-form";
 
-export const metadata: Metadata = { title: "Create Account — WorldStreaming" };
+export const metadata: Metadata = { title: "Create Account | British Streaming" };
 
 export default function RegisterPage() {
   return <RegisterForm />;

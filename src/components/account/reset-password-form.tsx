@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { api, type ApiFailure } from "@/lib/auth/client";
 import { checkPassword } from "@/lib/auth/password-policy";
+import { InteractiveHoverLink } from "@/components/ui/interactive-hover-button";
 import { AuthShell, authLink } from "./auth-shell";
 import { AnimatedForm, FormAlert, PasswordField, PasswordStrength, SubmitButton } from "./fields";
 
@@ -39,7 +40,7 @@ export function ResetPasswordForm({ token }: { token?: string }) {
   if (!token || failure?.code === "invalid_token") {
     return (
       <AuthShell title="Link expired" subtitle="This password reset link is invalid or has expired." footer={<Link href="/account/sign-in" className={authLink}>← Back to Sign In</Link>}>
-        <Link href="/account/forgot-password" className="flex h-12 w-full items-center justify-center rounded-md bg-[#7c3aed] font-semibold text-white hover:bg-[#6d2fd6]">Request a new link</Link>
+        <InteractiveHoverLink href="/account/forgot-password">Request a new link</InteractiveHoverLink>
       </AuthShell>
     );
   }
@@ -47,7 +48,7 @@ export function ResetPasswordForm({ token }: { token?: string }) {
     return (
       <AuthShell title="Password updated">
         <FormAlert tone="success" message="Your password was changed and you've been signed out of all devices." />
-        <Link href="/account/sign-in?notice=reset" className="flex h-12 w-full items-center justify-center rounded-md bg-[#7c3aed] font-semibold text-white hover:bg-[#6d2fd6]">Return to Sign In</Link>
+        <InteractiveHoverLink href="/account/sign-in?notice=reset">Return to Sign In</InteractiveHoverLink>
       </AuthShell>
     );
   }

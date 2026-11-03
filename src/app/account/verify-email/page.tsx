@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { VerifyEmailPanel } from "@/components/account/verify-email-panel";
 
-export const metadata: Metadata = { title: "Verify Email — WorldStreaming", referrer: "no-referrer", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Verify Email | British Streaming", referrer: "no-referrer", robots: { index: false, follow: false } };
 
 export default async function VerifyEmailPage({ searchParams }: PageProps<"/account/verify-email">) {
   const { token, email, sent } = await searchParams;

@@ -1,8 +1,9 @@
 "use client";
 
-import { Eye, EyeOff } from "lucide-react";
+import { Check, Eye, EyeOff } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { Children, useId, useState, useSyncExternalStore } from "react";
+import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { Spinner } from "@/components/ui/spinner";
 import { checkPassword } from "@/lib/auth/password-policy";
 import { EASE, SPRING } from "@/lib/motion";
@@ -14,7 +15,7 @@ export function useHydrated() {
   return useSyncExternalStore(subscribe, () => true, () => false);
 }
 
-const inputClass = "h-12 w-full rounded-md border bg-[#1b2a52] px-3 text-base text-white placeholder:text-zinc-400 outline-none transition-[border-color,box-shadow] duration-150 focus-visible:border-[#a78bfa] focus-visible:ring-4 focus-visible:ring-[#7c3aed]/30 disabled:opacity-60";
+const inputClass = "h-12 w-full rounded-md border bg-ws-elevated px-3 text-base text-white placeholder:text-ws-text-2 outline-none transition-[border-color,box-shadow] duration-150 focus-visible:border-ws-lavender focus-visible:ring-4 focus-visible:ring-ws-blue/30 disabled:opacity-60";
 
 interface FieldProps extends Omit<React.ComponentProps<"input">, "onChange"> {
   label: string;
@@ -28,10 +29,10 @@ export function TextField({ label, error, hint, onChange, className, ...props }:
   const hydrated = useHydrated();
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-zinc-100">{label}</label>
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-ws-text">{label}</label>
       <input id={id} readOnly={!hydrated} aria-invalid={Boolean(error)} aria-describedby={error ? `${id}-err` : hint ? `${id}-hint` : undefined} onChange={(e) => onChange(e.target.value)}
         className={cn(inputClass, error ? "border-red-400" : "border-white/20", className)} {...props} />
-      {hint && !error && <p id={`${id}-hint`} className="mt-1.5 text-xs text-zinc-400">{hint}</p>}
+      {hint && !error && <p id={`${id}-hint`} className="mt-1.5 text-xs text-ws-text-2">{hint}</p>}
       {error && <p id={`${id}-err`} role="alert" className="mt-1.5 text-sm text-red-300">{error}</p>}
     </div>
   );
@@ -43,12 +44,12 @@ export function PasswordField({ label, error, onChange, children, ...props }: Fi
   const [shown, setShown] = useState(false);
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-zinc-100">{label}</label>
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-ws-text">{label}</label>
       <div className="relative">
         <input id={id} readOnly={!hydrated} type={shown ? "text" : "password"} aria-invalid={Boolean(error)} aria-describedby={error ? `${id}-err` : undefined} onChange={(e) => onChange(e.target.value)}
           className={cn(inputClass, "pr-12", error ? "border-red-400" : "border-white/20")} {...props} />
         <button type="button" onClick={() => setShown((s) => !s)} aria-label={shown ? "Hide password" : "Show password"} aria-pressed={shown}
-          className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-md text-zinc-300 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-[#a78bfa]">
+          className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-md text-ws-text transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-ws-lavender">
           <AnimatePresence initial={false} mode="wait">
             <motion.span key={shown ? "hide" : "show"} initial={{ opacity: 0, rotate: -20, scale: 0.8 }} animate={{ opacity: 1, rotate: 0, scale: 1 }} exit={{ opacity: 0, rotate: 20, scale: 0.8 }} transition={{ duration: 0.12 }} className="flex">
               {shown ? <EyeOff className="size-5" aria-hidden /> : <Eye className="size-5" aria-hidden />}
@@ -72,26 +73,24 @@ export function PasswordStrength({ password, email, name }: { password: string; 
       <div className="flex gap-1" aria-hidden>
         {[1, 2, 3, 4].map((i) => <span key={i} className={cn("h-1.5 flex-1 rounded-full transition-colors duration-300", check.score >= i ? SEGMENT[check.score] : "bg-white/15")} />)}
       </div>
-      <p className="mt-1 text-xs text-zinc-300">Password strength: <strong className="text-white">{check.label}</strong>{check.problems[0] ? ` — ${check.problems[0]}` : ""}</p>
+      <p className="mt-1 text-xs text-ws-text">Password strength: <strong className="text-white">{check.label}</strong>{check.problems[0] ? ` — ${check.problems[0]}` : ""}</p>
     </div>
   );
 }
 
-export function SubmitButton({ pending, children, pendingLabel }: { pending: boolean; children: React.ReactNode; pendingLabel: string }) {
+export function SubmitButton({ pending, success, children, pendingLabel, successLabel = "Success" }: { pending: boolean; success?: boolean; children: React.ReactNode; pendingLabel: string; successLabel?: string }) {
   const hydrated = useHydrated();
-  const disabled = pending || !hydrated;
+  const disabled = pending || Boolean(success) || !hydrated;
   return (
-    <motion.button type="submit" disabled={disabled} aria-busy={pending}
-      whileHover={disabled ? undefined : { scale: 1.015 }} whileTap={disabled ? undefined : { scale: 0.97 }} transition={SPRING.press}
-      className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-[#7c3aed] px-4 text-base font-semibold text-white transition-colors duration-150 hover:bg-[#6d2fd6] disabled:cursor-not-allowed disabled:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
-      {pending ? (<><Spinner className="size-5" aria-hidden /> {pendingLabel}</>) : children}
-    </motion.button>
+    <InteractiveHoverButton type="submit" disabled={disabled} aria-busy={pending && !success}>
+      {success ? (<><Check className="size-5" aria-hidden /> {successLabel}</>) : pending ? (<><Spinner className="size-5" aria-hidden /> {pendingLabel}</>) : children}
+    </InteractiveHoverButton>
   );
 }
 
 export function FormAlert({ message, tone = "error" }: { message: string | null; tone?: "error" | "success" | "info" }) {
   if (!message) return null;
-  const styles = { error: "border-red-400/40 bg-red-500/10 text-red-100", success: "border-emerald-400/40 bg-emerald-500/10 text-emerald-100", info: "border-white/20 bg-white/5 text-zinc-100" };
+  const styles = { error: "border-red-400/40 bg-red-500/10 text-red-100", success: "border-emerald-400/40 bg-emerald-500/10 text-emerald-100", info: "border-white/20 bg-white/5 text-ws-text" };
   // Errors get a brief horizontal shake to draw the eye; everything else eases in. Transform/opacity only.
   return (
     <motion.div role={tone === "error" ? "alert" : "status"} data-reveal

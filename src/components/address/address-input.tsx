@@ -23,7 +23,7 @@ interface AddressInputProps {
 let statusPromise: Promise<boolean> | null = null;
 const placesConfigured = () => (statusPromise ??= fetch("/api/places/status").then((r) => r.json()).then((b: { configured?: boolean }) => Boolean(b.configured)).catch(() => false));
 
-const inputClass = "h-12 w-full rounded-md border bg-[#1b2a52] px-3 text-base text-white placeholder:text-zinc-400 outline-none transition-[border-color,box-shadow] duration-150 focus-visible:border-[#a78bfa] focus-visible:ring-4 focus-visible:ring-[#7c3aed]/30 disabled:opacity-60";
+const inputClass = "h-12 w-full rounded-md border bg-ws-elevated px-3 text-base text-white placeholder:text-ws-text-2 outline-none transition-[border-color,box-shadow] duration-150 focus-visible:border-ws-blue-light focus-visible:ring-4 focus-visible:ring-ws-blue/30 disabled:opacity-60";
 
 export function AddressInput({ value, onChange, showAllErrors = false, disabled, className }: AddressInputProps) {
   const uid = useId();
@@ -115,7 +115,7 @@ export function AddressInput({ value, onChange, showAllErrors = false, disabled,
     <div className={cn("space-y-4", className)}>
       <div>
         <div className="mb-1.5 flex items-center justify-between gap-2">
-          <label htmlFor={`${uid}-street`} className="text-sm font-medium text-zinc-100">Street address</label>
+          <label htmlFor={`${uid}-street`} className="text-sm font-medium text-ws-text">Street address</label>
           {configured && (
             <span className="-my-2 flex items-center">
               {locating ? <span className="flex size-10 items-center justify-center"><Spinner className="size-4" /></span> : <AddressIconButton label="Use my current location" onClick={locate} disabled={disabled} icon={<LocateFixed className="size-4 sm:size-5" />} />}
@@ -152,12 +152,12 @@ export function AddressInput({ value, onChange, showAllErrors = false, disabled,
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.15 }}
-                className="absolute inset-x-0 top-full z-30 mt-1 max-h-64 overflow-y-auto rounded-md border border-white/15 bg-[#0a1331] py-1 shadow-2xl"
+                className="absolute inset-x-0 top-full z-30 mt-1 max-h-64 overflow-y-auto rounded-md border border-white/15 bg-ws-card py-1 shadow-2xl"
               >
                 {suggestions.map((s, i) => (
                   // mouseDown (not click) so the pick lands before the input's blur clears the list.
                   <li key={`${s.label}-${i}`} id={`${uid}-opt-${i}`} role="option" aria-selected={i === active} onMouseDown={(e) => { e.preventDefault(); pick(s); }} onMouseEnter={() => setActive(i)}
-                    className={cn("flex cursor-pointer items-start gap-2 px-3 py-2.5 text-sm", i === active ? "bg-[#7c3aed]/25 text-white" : "text-zinc-200")}>
+                    className={cn("flex cursor-pointer items-start gap-2 px-3 py-2.5 text-sm", i === active ? "bg-ws-blue/25 text-white" : "text-ws-text")}>
                     <AddressIcon className="mt-0.5" /> <span className="min-w-0 break-words">{s.label}</span>
                   </li>
                 ))}
@@ -204,7 +204,7 @@ function Field({ uid, label, field, value, error, autoComplete, placeholder, dis
   const id = `${uid}-${field}`;
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-zinc-100">{label}</label>
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-ws-text">{label}</label>
       <input id={id} value={value} autoComplete={autoComplete} placeholder={placeholder} disabled={disabled} aria-invalid={Boolean(error)} aria-describedby={error ? `${id}-err` : undefined}
         onChange={(e) => onChange(e.target.value)} onBlur={onBlur} className={cn(inputClass, error ? "border-red-400" : "border-white/20")} />
       <FieldError id={`${id}-err`} message={error} />

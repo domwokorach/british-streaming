@@ -1,7 +1,21 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 
-export default function Error({ reset }: { reset: () => void }) {
-  return <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#0d1b3e] px-6 text-center text-white"><h1 className="text-2xl font-semibold">We&apos;re having trouble loading titles.</h1><p className="text-zinc-400">Please try again in a moment.</p><Button onClick={reset} className="bg-white text-black hover:bg-zinc-200">Try again</Button></main>;
+import { ErrorScreen } from "@/components/errors/error-screen";
+
+/** Unexpected failures inside a route. Never rendered for missing pages (see `not-found.tsx`), and never shows the error message. */
+export default function Error({ error, retry }: { error: Error & { digest?: string }; retry: () => void }) {
+  // Read connectivity after mount so the server and first client render agree.
+  const [offline, setOffline] = useState(false);
+  useEffect(() => {
+    console.error(error);
+    const sync = () => setOffline(!navigator.onLine);
+    sync();
+    window.addEventListener("online", sync);
+    window.addEventListener("offline", sync);
+    return () => { window.removeEventListener("online", sync); window.removeEventListener("offline", sync); };
+  }, [error]);
+
+  return <ErrorScreen variant={offline ? "offline" : "500"} onRetry={retry} reference={error.digest} />;
 }

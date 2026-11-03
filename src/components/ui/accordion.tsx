@@ -17,11 +17,11 @@ function AccordionTrigger({ className, children, ...props }: React.ComponentProp
     <AccordionPrimitive.Header className="flex">
       <AccordionPrimitive.Trigger
         data-slot="accordion-trigger"
-        className={cn("group/trigger flex min-h-11 flex-1 items-center justify-between gap-4 py-3 text-left text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-[#a78bfa]", className)}
+        className={cn("group/trigger flex min-h-11 flex-1 items-center justify-between gap-4 py-3 text-left text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ws-blue-light", className)}
         {...props}
       >
         {children}
-        <ChevronDownIcon aria-hidden className="size-4 shrink-0 text-zinc-400 transition-transform duration-200 group-aria-expanded/trigger:rotate-180" />
+        <ChevronDownIcon aria-hidden className="size-4 shrink-0 text-ws-text-2 transition-transform duration-200 group-aria-expanded/trigger:rotate-180" />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
   )
@@ -29,7 +29,7 @@ function AccordionTrigger({ className, children, ...props }: React.ComponentProp
 
 function AccordionContent({ className, children, ...props }: React.ComponentProps<typeof AccordionPrimitive.Panel>) {
   return (
-    <AccordionPrimitive.Panel data-slot="accordion-content" className="overflow-hidden text-sm text-zinc-300" {...props}>
+    <AccordionPrimitive.Panel data-slot="accordion-content" className="overflow-hidden text-sm text-ws-text" {...props}>
       <div className={cn("pb-4", className)}>{children}</div>
     </AccordionPrimitive.Panel>
   )

@@ -12,7 +12,7 @@ const sizeClass = "size-4 sm:size-5";
 export function AddressIcon({ active = false, className }: { active?: boolean; className?: string }) {
   return (
     <motion.span aria-hidden animate={active ? { y: -2, scale: 1.12 } : { y: 0, scale: 1 }} transition={{ type: "spring", stiffness: 420, damping: 22 }} className="inline-flex">
-      <MapPin className={cn(sizeClass, "transition-colors duration-150", active ? "text-[#a78bfa]" : "text-zinc-400", className)} />
+      <MapPin className={cn(sizeClass, "transition-colors duration-150", active ? "text-ws-blue-light" : "text-ws-text-2", className)} />
     </motion.span>
   );
 }
@@ -29,7 +29,7 @@ interface AddressIconButtonProps {
   className?: string;
 }
 
-const buttonClass = "inline-flex size-10 shrink-0 items-center justify-center rounded-full text-zinc-200 outline-none transition-colors hover:bg-white/10 hover:text-[#a78bfa] focus-visible:ring-2 focus-visible:ring-[#a78bfa] disabled:pointer-events-none disabled:opacity-50";
+const buttonClass = "inline-flex size-10 shrink-0 items-center justify-center rounded-full text-ws-text outline-none transition-colors hover:bg-white/10 hover:text-ws-blue-light focus-visible:ring-2 focus-visible:ring-ws-blue-light disabled:pointer-events-none disabled:opacity-50";
 
 /** Icon-only action with hover/tap motion, a tooltip and a 40px touch target. */
 export function AddressIconButton({ label, icon, href, className, onClick, disabled, "aria-expanded": expanded }: AddressIconButtonProps) {
@@ -47,7 +47,7 @@ export function AddressIconButton({ label, icon, href, className, onClick, disab
       >
         {icon ?? <MapPin className={sizeClass} aria-hidden />}
       </TooltipTrigger>
-      <TooltipContent className="border-white/10 bg-[#16275a] text-white">{label}</TooltipContent>
+      <TooltipContent className="border-white/10 bg-ws-card text-white">{label}</TooltipContent>
     </Tooltip>
   );
 }

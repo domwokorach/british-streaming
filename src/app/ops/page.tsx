@@ -4,7 +4,7 @@ import { budgetMinutes, budgetRemainingPct, deploymentMode } from "../../../scri
 import { cn } from "cn";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Ops — WorldStreaming", robots: { index: false, follow: false } };
+export const metadata = { title: "Ops | British Streaming", robots: { index: false, follow: false } };
 
 type Reading = { name: string; objective: number; sli: number | null; remaining: number | null };
 
@@ -49,11 +49,11 @@ export default async function OpsPage() {
   const mode = known.length ? deploymentMode(Math.min(...known), slos.deploymentPolicy) : null;
 
   return (
-    <main className="min-h-screen bg-[#0d1b3e] px-4 py-6 text-white sm:px-8">
+    <main className="min-h-screen bg-ws-bg px-4 py-6 text-white sm:px-8">
       <header className="mx-auto mb-6 flex max-w-6xl flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold sm:text-3xl">Reliability &amp; Operations</h1>
-          <p className="text-sm text-zinc-400">{slos.service} · {slos.windowDays}-day window · full-outage budget at 99.9% = {budgetMinutes(99.9, slos.windowDays)} min</p>
+          <p className="text-sm text-ws-text-2">{slos.service} · {slos.windowDays}-day window · full-outage budget at 99.9% = {budgetMinutes(99.9, slos.windowDays)} min</p>
         </div>
         <span className={cn("rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider", live ? "bg-emerald-500/20 text-emerald-300" : "bg-amber-500/20 text-amber-300")}>
           {live ? "Live · Prometheus" : "No Prometheus configured"}
@@ -64,20 +64,20 @@ export default async function OpsPage() {
         {readings.map((r) => {
           const pct = r.remaining === null ? null : Math.max(0, Math.min(100, r.remaining));
           return (
-            <article key={r.name} className="rounded-xl border border-white/10 bg-[#16275a] p-5">
-              <h2 className="text-sm font-medium uppercase tracking-wider text-zinc-400">{r.name.replace("_", " ")}</h2>
+            <article key={r.name} className="rounded-xl border border-white/10 bg-ws-card p-5">
+              <h2 className="text-sm font-medium uppercase tracking-wider text-ws-text-2">{r.name.replace("_", " ")}</h2>
               <p className="mt-2 text-3xl font-bold tabular-nums">{r.sli === null ? "—" : `${r.sli.toFixed(3)}%`}</p>
-              <p className="text-xs text-zinc-400">objective {r.objective}%</p>
+              <p className="text-xs text-ws-text-2">objective {r.objective}%</p>
               <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10" role="progressbar" aria-label="Error budget remaining" aria-valuenow={pct ?? 0} aria-valuemin={0} aria-valuemax={100}>
                 <div className={cn("h-full rounded-full transition-[width] duration-700", (pct ?? 0) < 25 ? "bg-red-500" : (pct ?? 0) < 50 ? "bg-amber-400" : "bg-emerald-400")} style={{ width: `${pct ?? 0}%` }} />
               </div>
-              <p className="mt-2 text-xs text-zinc-300">{pct === null ? "No data yet" : `${pct.toFixed(1)}% error budget remaining`}</p>
+              <p className="mt-2 text-xs text-ws-text">{pct === null ? "No data yet" : `${pct.toFixed(1)}% error budget remaining`}</p>
             </article>
           );
         })}
       </section>
 
-      <p className="mx-auto mt-4 max-w-6xl text-sm text-zinc-300">
+      <p className="mx-auto mt-4 max-w-6xl text-sm text-ws-text">
         Deployment mode: <strong className={cn(mode === "open" && "text-emerald-300", mode === "warn" && "text-amber-300", (mode === "restricted" || mode === "frozen") && "text-red-300")}>{mode ?? "unknown (no data)"}</strong>
       </p>
 
@@ -86,10 +86,10 @@ export default async function OpsPage() {
         <p className="mb-4 text-xs text-amber-300">Sample data — these panels need the AWS, GitHub and Cost Explorer integrations wired in before they show real values.</p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {SAMPLE.map((panel) => (
-            <article key={panel.label} className="rounded-xl border border-white/10 bg-[#16275a] p-5">
-              <h3 className="mb-3 text-sm font-medium uppercase tracking-wider text-zinc-400">{panel.label}</h3>
+            <article key={panel.label} className="rounded-xl border border-white/10 bg-ws-card p-5">
+              <h3 className="mb-3 text-sm font-medium uppercase tracking-wider text-ws-text-2">{panel.label}</h3>
               <dl className="space-y-2 text-sm">
-                {panel.rows.map(([k, v]) => (<div key={k} className="flex justify-between gap-4"><dt className="text-zinc-300">{k}</dt><dd className="tabular-nums">{v}</dd></div>))}
+                {panel.rows.map(([k, v]) => (<div key={k} className="flex justify-between gap-4"><dt className="text-ws-text">{k}</dt><dd className="tabular-nums">{v}</dd></div>))}
               </dl>
             </article>
           ))}

@@ -4,7 +4,7 @@ export const NAV_ITEMS = [
   { label: "Films", href: "/films" },
   { label: "New & Popular", href: "/new-popular" },
   { label: "My List", href: "/my-list" },
-  { label: "Browse by Languages", href: "/browse/languages" },
+  { label: "Browse by language", href: "/browse/languages" },
 ] as const;
 
 /** Category pages shown in the secondary bar under the main nav. */
@@ -12,7 +12,7 @@ export const CATEGORY_ITEMS = [
   { label: "Films", href: "/films" },
   { label: "Series", href: "/series" },
   { label: "New & Popular", href: "/new-popular" },
-  { label: "Browse by Languages", href: "/browse/languages" },
+  { label: "Browse by language", href: "/browse/languages" },
 ] as const;
 
 export const PROFILE_IMAGE = "https://i.pravatar.cc/80?img=12";
