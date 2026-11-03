@@ -209,6 +209,7 @@ Rollback: [docs/runbooks/rollback.md](./docs/runbooks/rollback.md).
 
 | Symptom | Likely cause and fix |
 |---|---|
+| Deployed site loads but sign-in, My List or the catalogue fail; `/api/ready` returns 503 listing `missing` variables | The runtime environment variables are not set on the host (for example in Vercel). The build deliberately succeeds without them; set them and redeploy |
 | Catalogue empty, "temporarily unavailable" | `TMDB_API_READ_TOKEN` missing or invalid |
 | Dev server returns 500 after a build | A production build cleared `.next`; stop and restart `npm run dev` |
 | `next build` fails with "Specified module format (CommonJs)..." | `package.json` contains `"type": "commonjs"`; remove it (this is an ESM codebase) |

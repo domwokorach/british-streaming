@@ -14,8 +14,13 @@ function required(name: "TMDB_API_READ_TOKEN" | "SUPABASE_SECRET_KEY") {
 
 // Fail fast, at import time, if the app's non-secret required configuration is missing —
 // never logs the value itself, only that the variable is absent.
-requiredPublic("NEXT_PUBLIC_SUPABASE_URL");
-requiredPublic("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
+// `next build` imports every route module to collect page data, often on a CI host that has no runtime secrets, and these
+// values are only read on the server at request time (never inlined into browser code). So the check is skipped for that
+// one phase and still runs when the server starts and serves requests.
+if (process.env.NEXT_PHASE !== "phase-production-build") {
+  requiredPublic("NEXT_PUBLIC_SUPABASE_URL");
+  requiredPublic("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
+}
 
 export const env = {
   tmdbBaseUrl: process.env.TMDB_API_BASE_URL ?? "https://api.themoviedb.org/3",
