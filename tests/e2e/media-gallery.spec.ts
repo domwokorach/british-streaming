@@ -34,6 +34,7 @@ test.describe("desktop hover preview", () => {
       const target = which === "first" ? cards.first() : await lastVisible(page);
       await target.scrollIntoViewIfNeeded();
       await target.hover();
+      await expect(page.locator(PREVIEW)).toBeVisible();
       const box = (await page.locator(PREVIEW).boundingBox())!;
       expect(box.x, `${which} left edge`).toBeGreaterThanOrEqual(0);
       expect(box.x + box.width, `${which} right edge`).toBeLessThanOrEqual(1440);
@@ -90,9 +91,10 @@ test.describe("desktop hover preview", () => {
     // Click via the DOM: moving a real pointer to the arrow crosses cards and would open hover previews over it.
     const clickNext = () => row.evaluate((el) => { const b = el.querySelector<HTMLButtonElement>('[data-slot="carousel-next"]'); if (!b || b.disabled) return false; b.click(); return true; });
     for (let i = 0; i < 12 && (await clickNext()); i++) await page.waitForTimeout(450);
-    const lastBox = (await row.locator('[data-slot="carousel-item"]').last().boundingBox())!;
-    expect(lastBox.x + lastBox.width).toBeLessThanOrEqual(1440);
-    expect(lastBox.x).toBeGreaterThanOrEqual(0);
+    // Embla is still settling for a moment after the final click, so poll until the last card has come to rest.
+    const last = row.locator('[data-slot="carousel-item"]').last();
+    await expect.poll(async () => { const b = (await last.boundingBox())!; return b.x + b.width; }, { timeout: 5000 }).toBeLessThanOrEqual(1440);
+    expect((await last.boundingBox())!.x).toBeGreaterThanOrEqual(0);
   });
 });
 
@@ -154,10 +156,14 @@ test.describe("Popular in GB marquees", () => {
     await page.mouse.move(5, 5);
     await expect.poll(() => playState(page, name)).toBe("running");
 
-    const card = strip(page, name).locator("ul").first().locator("button[aria-label*='See more about']").nth(1);
-    // Playwright's hover() waits for the target to stop moving, which a marquee never does; move the pointer to where it is.
-    const cardBox = (await card.boundingBox())!;
-    await page.mouse.move(cardBox.x + cardBox.width / 2, cardBox.y + cardBox.height / 2);
+    // Playwright's hover() waits for the target to stop moving, which a marquee never does, and the strip drifts while we
+    // measure: pick whichever card is on screen right now and move the real pointer onto it.
+    const point = await strip(page, name).locator("button[aria-label*='See more about']").evaluateAll((els) => {
+      for (const el of els) { const r = el.getBoundingClientRect(); if (r.left > 150 && r.right < innerWidth - 150 && r.top >= 0 && r.bottom <= innerHeight) return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }
+      return null;
+    });
+    expect(point, "a card is on screen").not.toBeNull();
+    await page.mouse.move(point!.x, point!.y);
     await expect.poll(() => playState(page, name)).toBe("paused");
     const preview = page.locator("[data-hover-preview]");
     await expect(preview).toBeVisible();

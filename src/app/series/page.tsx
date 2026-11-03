@@ -1,4 +1,5 @@
 import { ContentRow } from "@/components/content/content-row";
+import { NAV_SCROLL_MARGIN_CLASS } from "@/lib/nav-targets";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { toMediaItem } from "@/lib/tmdb";
@@ -17,8 +18,9 @@ export default async function SeriesPage() {
     <main className="min-h-screen bg-ws-bg pb-12 text-white">
       <Navbar />
       <div className="pt-28">
+        <div id="series-content" className={NAV_SCROLL_MARGIN_CLASS}>
         <h1 className="px-4 text-3xl font-bold sm:px-10">Series</h1>
-        {rows.length > 0 ? rows.map((row) => <ContentRow key={row.title} row={row} />) : <p className="px-4 pt-6 text-ws-text-2 sm:px-10">Series are temporarily unavailable.</p>}
+        {rows.length > 0 ? rows.map((row) => <ContentRow key={row.title} row={row} />) : <p className="px-4 pt-6 text-ws-text-2 sm:px-10">Series are temporarily unavailable.</p>}</div>
       </div>
       <Footer />
     </main>

@@ -3,6 +3,7 @@ import { Figtree, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { BRAND } from "@/lib/brand";
 import { BottomNav } from "@/components/layout/bottom-nav";
+import { NavScrollHandler } from "@/components/layout/nav-scroll-handler";
 import { ScrollProgress } from "@/components/motion/scroll-progress";
 import { ScrollToTop } from "@/components/motion/scroll-to-top";
 import { WebVitalsReporter } from "@/components/ops/web-vitals-reporter";
@@ -42,7 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       data-scroll-behavior="smooth"
       className={`dark ${brandSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col"><MotionProvider><AuthProvider><PlaybackProvider>{children}<BottomNav /><ScrollProgress /><ScrollToTop /><WebVitalsReporter /></PlaybackProvider></AuthProvider><Toaster theme="dark" /></MotionProvider></body>
+      <body className="min-h-full flex flex-col"><MotionProvider><AuthProvider><PlaybackProvider>{children}<BottomNav /><NavScrollHandler /><ScrollProgress /><ScrollToTop /><WebVitalsReporter /></PlaybackProvider></AuthProvider><Toaster theme="dark" /></MotionProvider></body>
     </html>
   );
 }

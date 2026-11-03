@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ContentRow } from "@/components/content/content-row";
+import { NAV_SCROLL_MARGIN_CLASS } from "@/lib/nav-targets";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,9 @@ export default function MyListPage() {
     <main className="min-h-screen bg-ws-bg pb-12 text-white">
       <Navbar />
       <div className="pt-28">
+        <div id="my-list-content" className={NAV_SCROLL_MARGIN_CLASS}>
         <h1 className="px-4 text-3xl font-bold sm:px-10">My List</h1>
+        
         {!authLoading && !user && (
           <div className="px-4 pt-6 sm:px-10">
             <p className="text-ws-text-2">Sign in to save titles to your list.</p>
@@ -34,6 +37,7 @@ export default function MyListPage() {
         )}
         {user && !loading && titles.length === 0 && <p className="px-4 pt-6 text-ws-text-2 sm:px-10">Your list is empty. Add titles with the + button on any title.</p>}
         {user && !loading && titles.length > 0 && <ContentRow row={{ title: "Saved for You", items: titles }} />}
+        </div>
       </div>
       <Footer />
     </main>

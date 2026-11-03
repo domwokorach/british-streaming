@@ -1,11 +1,11 @@
 "use client";
 
 import { Menu } from "lucide-react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { NAV_ITEMS } from "@/lib/constants";
+import { NavLink } from "./nav-link";
 import { cn } from "cn";
 
 export function MobileNav() {
@@ -19,14 +19,14 @@ export function MobileNav() {
           {NAV_ITEMS.map((item) => {
             const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
             return (
-              <Link
+              <NavLink
                 className={cn("rounded-md px-4 py-3 text-sm transition-colors duration-150", active ? "bg-white/10 font-semibold text-white" : "text-ws-text hover:bg-white/10 hover:text-white")}
                 href={item.href}
                 key={item.href}
                 aria-current={active ? "page" : undefined}
               >
                 {item.label}
-              </Link>
+              </NavLink>
             );
           })}
         </nav>

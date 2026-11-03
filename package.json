@@ -5,7 +5,6 @@
   "description": "british streaming",
   "license": "ISC",
   "author": "Dominic Wokorach",
-  "type": "commonjs",
   "main": "index.js",
   "directories": {
     "doc": "docs",

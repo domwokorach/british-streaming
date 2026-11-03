@@ -13,6 +13,7 @@ import { cn } from "cn";
 import { BRAND } from "@/lib/brand";
 import { useAuth } from "@/providers/auth-provider";
 import { MobileNav } from "./mobile-nav";
+import { NavLink } from "./nav-link";
 import { NotificationDropdown } from "./notification-dropdown";
 import { SearchBar } from "./search-bar";
 
@@ -46,15 +47,15 @@ export function Navbar() {
           {NAV_ITEMS.map((item) => {
             const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
             return (
-              <Link
+              <NavLink
                 key={item.href}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={cn("relative whitespace-nowrap rounded-full px-2.5 py-2 transition-colors duration-150 lg:px-4", active ? "font-medium text-white" : "text-ws-text-2 hover:text-ws-lavender")}
+                className={cn("relative whitespace-nowrap rounded-full px-2.5 py-2 transition-colors duration-150 lg:px-4", active ? "font-medium text-white" : "text-ws-text-2 hover:text-ws-lavender after:absolute after:inset-x-4 after:bottom-1 after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:bg-ws-purple after:transition-transform after:duration-200 hover:after:scale-x-100 focus-visible:after:scale-x-100 motion-reduce:after:transition-none")}
               >
                 {active && <motion.span layoutId="nav-active-pill" aria-hidden transition={{ type: "spring", stiffness: 420, damping: 34 }} className="absolute inset-0 rounded-full bg-ws-elevated shadow-[inset_0_-2px_0_var(--ws-blue)]" />}
                 <span className="relative">{item.label}</span>
-              </Link>
+              </NavLink>
             );
           })}
         </nav>

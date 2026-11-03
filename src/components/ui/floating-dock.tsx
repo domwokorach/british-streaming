@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { NavLink } from "@/components/layout/nav-link";
 import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring, useTransform, type MotionValue } from "motion/react";
 import { useRef, useState } from "react";
 
@@ -47,7 +47,7 @@ function DockIcon({ mouseX, magnify, title, href, icon, active }: DockItem & { m
   const size = useSpring(useTransform(distance, [-120, 0, 120], [BASE, PEAK, BASE]), SPRING);
 
   return (
-    <Link
+    <NavLink
       ref={ref}
       href={href}
       aria-label={title}
@@ -72,6 +72,6 @@ function DockIcon({ mouseX, magnify, title, href, icon, active }: DockItem & { m
           </motion.span>
         )}
       </AnimatePresence>
-    </Link>
+    </NavLink>
   );
 }
